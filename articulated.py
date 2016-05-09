@@ -59,7 +59,7 @@ class articulated_model(object):
 	legs = [[]]
 
 	# can be changed to an array for variable lengths later
-	segment_length = 180.
+	segment_length = 120.
 
 	M = np.eye(3)
 	
