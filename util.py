@@ -212,7 +212,7 @@ class parameters(object):
 		
 		self.image = cv2.blur(np.copy(self.image), (5,5))
 		self.hsv = cv2.blur(np.copy(self.hsv), (5,5))
-		# self.dt = cv2.blur(np.copy(self.dt), (5,5))
+		self.dt = cv2.blur(np.copy(self.dt), (5,5))
 
 	def get_frames(self):
 		return np.copy(self.image), np.copy(self.hsv), np.copy(self.dt)
@@ -224,19 +224,36 @@ def descriptors(params, points, HS):
 
 	image_, hsv_, dt_ = params.get_frames()
 
-	if points.any() < 0 or points.any() > image.shape[:2]:
-		data[:,:] = 0
+	# image_.shape[:2][1]
+
+	for p in points:
+		if (p[0] < 0) or (p[1] < 0) or (p[0] >= image_.shape[1]-10) or (p[1] >= image_.shape[0]-10):
+			print 'here 1'
+			data[:,:] = 0
+			return data, KH
+		if p[0] >= image_.shape[1]-10:
+			print 'here 2', p
+			data[:,:] = 0
+			return data, KH
+		if p[1] >= image_.shape[0]-10:
+			print 'here 3', p
+			data[:,:] = 0
+			return data, KH
+
+	# print image_.shape, hsv_.shape, dt_.shape
+
+	# print points[0][0], points[0][1]
 
 	for i in range(HS.get_N()):
-		data[0,i] = hsv_[points[i][0],points[i][1],0]
-		data[1,i] = hsv_[points[i][0],points[i][1],1]
-		data[2,i] = hsv_[points[i][0],points[i][1],2]
+		data[0,i] = hsv_[points[i][1],points[i][0],0]
+		data[1,i] = hsv_[points[i][1],points[i][0],1]
+		data[2,i] = hsv_[points[i][1],points[i][0],2]
 
-		data[3,i] = image_[points[i][0],points[i][1],0]
-		data[4,i] = image_[points[i][0],points[i][1],1]
-		data[5,i] = image_[points[i][0],points[i][1],2]
+		data[3,i] = image_[points[i][1],points[i][0],0]
+		data[4,i] = image_[points[i][1],points[i][0],1]
+		data[5,i] = image_[points[i][1],points[i][0],2]
 
-		data[6,i] = dt_[points[i][0],points[i][1]]
+		data[6,i] = dt_[points[i][1],points[i][0]]
 
 	for i in range(HS.get_N()):
 		for k in range(HS.get_N()):

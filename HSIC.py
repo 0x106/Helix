@@ -68,7 +68,7 @@ class HilbertSchmidt(object):
 		if np.sum(Y) == 0:
 			return 0.
 
-		K,L, LH = np.zeros((self.N,self.N)), np.zeros((self.N,self.N)), np.zeros((self.N,self.N))
+		L, LH = np.zeros((self.N,self.N)), np.zeros((self.N,self.N))
 
 		for i in range(self.N):
 			for k in range(self.N):
