@@ -177,6 +177,7 @@ import HSIC
 
 
 class parameters(object):
+	output_dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/output/'
 	dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/0008/0002/frame-'
 	suffix = '.jpg'
 	current_frame = 0
@@ -189,6 +190,12 @@ class parameters(object):
 	edges = np.zeros((h,w,1))
 	dt = np.zeros((h,w,1))
 	hsv = np.zeros((h,w,3))
+
+	counter = 10
+
+	def get_filename(self):
+		self.counter += 1
+		return self.output_dir, self.counter, self.current_frame, self.suffix
 
 	def __init__(self):
 		self.current_frame = -1

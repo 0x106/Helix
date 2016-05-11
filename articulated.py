@@ -10,7 +10,7 @@ class joint(object):
 	T 		= np.eye(4)
 
 	N = 20
-	radius = 140
+	radius = 110
 	points = []
 
 	def __init__(self):
@@ -218,15 +218,20 @@ class articulated_model(object):
 
 
 
-def optimise(state, params, P_KH, HS, display=False):
+def optimise(state, initial_model, params, P_KH, HS, display=False):
 	image, hsv, dt = params.get_frames()
 	model = articulated_model(image.shape)
+
+	model.copy(initial_model)
 
 	## move the model into the given pose
 	model.tx(-1,1,state[0])
 	model.tx(-1,1,state[1])
 	model.rz(-1,1,state[2])
 
+	model.rz(0,1,state[3])
+	model.rz(1,1,state[4])
+	
 	if display:
 		## draw the model for testing
 		points = model.get_points()
@@ -239,6 +244,10 @@ def optimise(state, params, P_KH, HS, display=False):
 		points = model.get_points(all_points=True)
 		for i in range(len(points)):
 			cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,255,0))
+
+		__dir, __counter, __current_frame, __suffix = params.get_filename() 
+
+		cv2.imwrite(__dir + str(__counter) + '__' + str(__current_frame) + __suffix, image)
 
 		cv2.imshow("Neptune - Image", image)
 		cv2.waitKey(1)
@@ -253,18 +262,21 @@ def optimise(state, params, P_KH, HS, display=False):
 	N = HS.get_N()
 
 	result = ((1. / (N*N)) * np.trace(np.dot(P_KH,LH))) / (np.sqrt((1. / (N*N)) * np.trace(np.dot(LH,LH))))
+	
+	print state, result
+
 	return result
 
-def PSO(state, params, P_KH, HS):
+def PSO(state, initial_model, params, P_KH, HS):
 
-	M = 10        # number of particles
-	K = 3 	      # num parameters to define functions
+	M = 20        # number of particles
+	K = len(state) 	      # num parameters to define functions
 
 	c1, c2, omega       = 1.49618, 1.49618, 0.7298
 	p, v = np.zeros((M, K+1)), np.zeros((M, K))
 	b, g = np.zeros((M, K+1)), np.zeros(K+1)
 
-	MAX_ITER = 20
+	MAX_ITER = 10
 
 	results = []
 
@@ -272,10 +284,14 @@ def PSO(state, params, P_KH, HS):
 		p[i,0]   = (np.random.rand(1) * 10.) - 5.
 		p[i,1]   = (np.random.rand(1) * 10.) - 5.
 		p[i,2]   = (np.random.rand(1) * 0.5) - 0.25
-		p[i,K]   = optimise(p[i,:K], params, P_KH, HS)
+		p[i,3]   = (np.random.rand(1) * 0.5) - 0.25
+		p[i,4]   = (np.random.rand(1) * 0.5) - 0.25
+		p[i,K]   = optimise(p[i,:K], initial_model, params, P_KH, HS)
 		v[i,0]   = (np.random.rand(1) * 5.) - 2.5
 		v[i,1]   = (np.random.rand(1) * 5.) - 2.5
 		v[i,2]   = (np.random.rand(1) * 0.25) - 0.125
+		v[i,3]   = (np.random.rand(1) * 0.25) - 0.125
+		v[i,4]   = (np.random.rand(1) * 0.25) - 0.125
 		b[i] = np.copy(p[i])
 
  #    # find the global opt
@@ -288,10 +304,10 @@ def PSO(state, params, P_KH, HS):
 	# ## ==== RUN PSO ==== ##
 	for iter in range(MAX_ITER):
 
-		print iter, g[K]
+		print '------------>', iter, g[K]
 
 		for i in range(M):
-			p[i,K]      = optimise(p[i,:K], params, P_KH, HS)
+			p[i,K]      = optimise(p[i,:K], initial_model, params, P_KH, HS)
 			if p[i,K] > b[i,K]:
 				b[i,:] = np.copy(p[i,:])
 
@@ -303,7 +319,7 @@ def PSO(state, params, P_KH, HS):
 		if idx > -1:
 			g = np.copy(p[idx,:])
 
-		optimise(g[:K], params, P_KH, HS, display=True)
+		optimise(g[:K], initial_model, params, P_KH, HS, display=False)
 
 		for i in range(M):
 			r1, r2 = np.random.rand(1)[0], np.random.rand(1)[0]
@@ -311,8 +327,7 @@ def PSO(state, params, P_KH, HS):
 			p[i,:K] += np.copy(v[i])
 
 
-
-
+	optimise(g[:K], initial_model, params, P_KH, HS, display=True)
 
 
 
