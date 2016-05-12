@@ -55,13 +55,19 @@ class HilbertSchmidt(object):
 	S = np.eye(K) * (1./((K*10000)))
 	S[6,6] = (1./((K*20)))
 
-	def __init__(self, N):
+	def __init__(self, N, _K=7):
 		self.N = N
 		self.H = np.zeros((self.N,self.N))
 		for i in range(self.N):
 			for k in range(self.N):
 				self.H[i,k] = 0. - (1./self.N)
 			self.H[i,i] = 1. - (1./self.N)
+
+		if _K != 7:
+			self.S = np.eye(_K) * (1./((_K*20000.)))
+		else:
+			self.S = np.eye(_K) * (1./((_K*10000)))
+			self.S[6,6] = (1./((K*20)))
 
 	def __HSIC__(self, KH, Y):
 	

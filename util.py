@@ -191,7 +191,7 @@ class parameters(object):
 	dt = np.zeros((h,w,1))
 	hsv = np.zeros((h,w,3))
 
-	counter = 10
+	counter = 15
 
 	def get_filename(self):
 		self.counter += 1

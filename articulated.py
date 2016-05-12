@@ -9,7 +9,7 @@ class joint(object):
 	R 		= np.eye(4)
 	T 		= np.eye(4)
 
-	N = 20
+	N = 14
 	radius = 110
 	points = []
 

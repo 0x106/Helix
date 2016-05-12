@@ -13,48 +13,21 @@ import scipy.optimize
 # activity_recognition.run()
 # activity_recognition.optical_flow_tracking()
 
-params = util.parameters()
-image, hsv, dt = params.get_frames()
+def track_articulated():
 
-num_models = 1
+	params = util.parameters()
+	image, hsv, dt = params.get_frames()
 
-model = [articulated.articulated_model(image.shape) for i in range(num_models)]
+	num_models = 1
 
-# model[1].copy(model[0])
+	model = [articulated.articulated_model(image.shape) for i in range(num_models)]
 
-## draw the model for testing
-# points = model.get_points()
-# for i in range(len(points)):
-# 	cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
-# for i in range(len(points)-1):
-# 	if i != 6:
-# 		cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
-# points = model.get_points(all_points=True)
+	# model[1].copy(model[0])
 
-# for i in range(len(points)):
-#  	cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,255,0))
+	points = [model[i].get_points(all_points=True) for i in range(num_models)]
+	HS = HSIC.HilbertSchmidt(len(points[0]))
 
-# cv2.imshow("Neptune - Image", image)
-# cv2.waitKey(0)
-
-points = [model[i].get_points(all_points=True) for i in range(num_models)]
-HS = HSIC.HilbertSchmidt(len(points[0]))
-
-P_data, P_KH = util.descriptors(params, points[0], HS)
-
-# temp_models = [articulated.articulated_model(image.shape) for i in range(num_models*10)]
-
-# for i in range(num_models*10):
-# 	temp_points = temp_models[i].get_points(all_points=True)
-# 	__P_data, __P_KH = util.descriptors(params, temp_points, HS)
-# 	P_KH += __P_KH
-
-# P_KH /= (num_models*10)
-
-if True:
-
-	for i in range(11):
-		params.update()
+	P_data, P_KH = util.descriptors(params, points[0], HS)
 
 	init = np.random.rand(5)
 
@@ -66,8 +39,21 @@ if True:
 		# args=(model[0], params, P_KH, HS, True), method='Nelder-Mead', options={'xtol':1e-6, 'disp':False})
 
 	# print optimisation
-else:
 
+def test_articulated_tracking():
+	params = util.parameters()
+	image, hsv, dt = params.get_frames()
+
+	num_models = 1
+
+	model = [articulated.articulated_model(image.shape) for i in range(num_models)]
+
+	# model[1].copy(model[0])
+
+	points = [model[i].get_points(all_points=True) for i in range(num_models)]
+	HS = HSIC.HilbertSchmidt(len(points[0]))
+
+	P_data, P_KH = util.descriptors(params, points[0], HS)
 	results = [np.zeros(200) for i in range(num_models)]
 	count = 0
 
@@ -77,13 +63,11 @@ else:
 		model[i].rz(-1,1,-100*0.01)
 
 	while(command != 'q'):
-
-# 	# params.update()
 		image, hsv, dt = params.get_frames()
 
 		for i in range(num_models):
 			model[i].rz(-1,1,0.01)
-# 
+
 		points = [model[i].get_points() for i in range(num_models)]
 
 		for k in range(num_models):
@@ -111,8 +95,6 @@ else:
 		print count, [results[i][count] for i in range(num_models)]
 
 		cv2.imshow("Neptune - Image", image)
-# # 	# # cv2.imshow("Neptune - HSV", hsv)
-# # 	# # cv2.imshow("Neptune - DT", dt)
 
 		if count == results[i].shape[0]-1:
 			for i in range(num_models):
@@ -123,42 +105,18 @@ else:
 
 		command = cv2.waitKey(1)
 
-# # image, hsv, dt = params.get_frames()
-
-# # # points = model.get_points()
-
-# # # for i in range(len(points)-1):
-# # # 	if i != 4:
-# # # 		cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
-# # # for i in range(len(points)):
-# # # 	cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
-
-# # points = model.get_points(all_points=True)
-
-# # for i in range(len(points)):
-# # 	print '-->', points[i]
-# # 	cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,255,0))
-
-# # cv2.imshow("Neptune - HSV", hsv)
-# # cv2.imshow("Neptune - DT", dt)
-# # cv2.imshow("Neptune - Image", image)
-# # cv2.waitKey(0)
 
 
 
 
 
+# ================= #
+#    Main Control   #
+# ================= #
 
+# track_articulated()
 
-
-
-
-
-
-
-
-
-
+activity_recognition.optical_flow_tracking()
 
 
 

@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+import HSIC
+import matplotlib.pyplot as plt
 
 def readData(files, N):
     output = '/Users/jordancampbell/Desktop/all_asfamc/data/temp.amc'
@@ -69,7 +71,6 @@ def draw_flow(im, flow, step=8):
         cv2.circle(im,(x1,y1),1,(0,255,0), -1)
     return im
 
-
 def show_tracks(flow_tensor, image, frame, save=False):
 
     step = 8
@@ -81,8 +82,10 @@ def show_tracks(flow_tensor, image, frame, save=False):
     x,y = np.linspace(0+step/2.,w-step/2.,w/step).astype(int), np.linspace(0+step/2.,h-step/2.,h/step).astype(int)
 
     tracks = np.zeros((x.shape[0]*y.shape[0],frame, 2))
+    data = np.zeros((x.shape[0]*y.shape[0]*2., frame))
 
     index = 0
+    idx = 0
     for i in range(x.shape[0]):
         for k in range(y.shape[0]):
 
@@ -110,60 +113,144 @@ def show_tracks(flow_tensor, image, frame, save=False):
 
             index += 1
 
-    return image, tracks
+    for j in range(frame):
 
+        index = 0
+
+        for k in range(tracks.shape[0]):
+
+            data[index + 0, j] = tracks[k,j,0]
+            data[index + 1, j] = tracks[k,j,1]
+
+            index += 2
+
+    return image, tracks, data
+
+def plot2d(input):
+    im = plt.imshow(input, interpolation='nearest', cmap='spring')
+    plt.gca().invert_yaxis()
+    plt.colorbar()
+
+def PCA(X):
+    mu_X = np.mean(X,0)
+    X -= mu_X
+    M = np.dot(X,X.T)
+    e,EV = np.linalg.eigh(M)
+    
+    tmp = np.dot(X.T,EV)
+    tmp = (tmp/np.sqrt(np.sum(tmp**2,0))).T
+    
+    e[e<0] = 0
+    S = np.sqrt(e)
+    
+    idx = np.argsort(-S)
+    
+    S = S[idx]
+    V = tmp[idx,:]
+    
+    Y = np.dot(V,X.T)
+    
+    return Y
 
 def optical_flow_tracking():
 
+    dir_prefix = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/'
+    count = 0
 
-    dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/0000/0000/frame-00'
-    file = dir + str(0)+str(0) + '.jpg'
-    frame = cv2.imread(file)
+    # this allows all the flow tensors to be built from the same number of frames
+    L1, L2, mfc = 9, 5, 40
+    N = mfc-1
+    M = 2400
+    F = 10
 
-    flow_tensor = []
+    # from each video we extract a list of flow matrices
+    # therefore our flow tensor is a list of list of matrices
+    tensor_flow = [[]]
 
-    for i in range(60):
+    KH = [np.zeros((mfc-1, mfc-1)) for i in range(L1*L2)]
 
-        if i < 9:
-            file_p = dir + str(0)+str(i) + '.jpg'
-            file_n = dir + str(0)+str(i+1) + '.jpg'
-        elif i == 9:
-            file_p = dir + str(0)+str(i) + '.jpg'
-            file_n = dir + str(i+1) + '.jpg'
-        else:
-            file_p = dir + str(i) + '.jpg'
-            file_n = dir + str(i+1) + '.jpg'
+    HS = HSIC.HilbertSchmidt(N,F)#M)
 
-        prev = cv2.imread(file_p, 0)
-        next = cv2.imread(file_n, 0)
-        frame = cv2.imread(file_p)
+    file_index = 0
+    for level_one in range(L1):
+        for level_two in range(L2):
 
-        flow = cv2.calcOpticalFlowFarneback(prev,next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+            print level_one, level_two, L1, L2
 
-        flow_tensor.append(flow)
+            cf = open(dir_prefix +str(level_one).zfill(4)+'/'+str(level_two).zfill(4)+'/'+'count.txt')
+            for line in cf:
+                count = line.split()[0]
 
-        # flow_img, tracks = show_tracks(flow_tensor, frame, i+1)
+            index = np.linspace(0, int(count)-1, num=mfc)
 
-        flow_img = draw_flow(frame, flow)
+            tensor_flow.append([])
 
-        cv2.imshow("Prev", prev)
-        cv2.imshow("Prev", next)
-        cv2.imshow("Flow", flow_img)
+            for k in range(N):
+             
+                prev_file = dir_prefix +str(level_one).zfill(4)+'/'+str(level_two).zfill(4)+'/'+'frame-'+str(int(index[k])).zfill(4)+'.jpg'
+                next_file = dir_prefix +str(level_one).zfill(4)+'/'+str(level_two).zfill(4)+'/'+'frame-'+str(int(index[k+1])).zfill(4)+'.jpg'
+                
+                prev = cv2.imread(prev_file, 0)
+                next = cv2.imread(next_file, 0)
+                frame = cv2.imread(prev_file, cv2.IMREAD_COLOR)
 
-        cv2.waitKey(1)
+                flow = cv2.calcOpticalFlowFarneback(prev,next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+                # flow_img = draw_flow(frame, flow)
 
-    flow_img, tracks = show_tracks(flow_tensor, frame, i+1)
+                tensor_flow[-1].append(flow)
 
-    frame = cv2.imread(file_p)
+                # cv2.imshow("CHG Dataset - Flow", flow_img)
+                # cv2.waitKey(1)
 
-    for i in range(tracks.shape[0]):
-        for k in range(tracks.shape[1]-1):
-                cv2.line(frame, (tracks[i,k,0].astype(int), tracks[i,k,1].astype(int)), 
-                    (tracks[i,k+1,0].astype(int), tracks[i,k+1,1].astype(int)) ,(255,0,0))
+            flow_img, tracks, data = show_tracks(tensor_flow[-1], frame, N)
 
-    cv2.imshow("Flow", frame)
-    cv2.waitKey(0)
+            data = PCA(data.T)
 
+            # print data.shape
+
+            # plt.plot(data[0,:])
+            # plt.plot(data[1,:])
+            # plt.plot(data[2,:])
+            # plt.plot(data[3,:])
+            # plt.show()
+
+            for i in range(N):
+                for k in range(N):
+                    # KH[file_index][i,k] = HS.rbf(data[:,i], data[:,k])
+                    KH[file_index][i,k] = HS.rbf(data[:F,i], data[:F,k])
+
+            KH[file_index] = np.dot(KH[file_index], HS.get_H())
+
+            # frame = cv2.imread(prev_file)
+
+            # for i in range(tracks.shape[0]):
+                # for k in range(tracks.shape[1]-1):
+                #     cv2.line(frame, (tracks[i,k,0].astype(int), tracks[i,k,1].astype(int)), 
+                #         (tracks[i,k+1,0].astype(int), tracks[i,k+1,1].astype(int)) ,(255,0,0))
+
+            # cv2.imshow("Flow", frame)
+            # cv2.waitKey(1)
+
+            file_index += 1
+
+    print len(KH)
+
+    Q = len(KH)
+
+    results = np.zeros((Q,Q))
+
+    for i in range(Q):
+        for k in range(Q):
+            results[i,k] = (1./(N*N)) * np.trace(np.dot(KH[i], KH[k])) / np.sqrt(((1./(N*N)) * np.trace(np.dot(KH[k], KH[k]))) * ((1./(N*N)) * np.trace(np.dot(KH[i], KH[i]))))
+
+
+    plot2d(results)
+
+
+    # for i in range(Q):
+        # plt.plot(results[i,:])
+
+    plt.show()
 
 
 
