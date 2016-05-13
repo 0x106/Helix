@@ -116,7 +116,8 @@ def test_articulated_tracking():
 
 # track_articulated()
 
-activity_recognition.optical_flow_tracking()
+activity_recognition.run()
+# activity_recognition.optical_flow_tracking()
 
 
 

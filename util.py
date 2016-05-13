@@ -178,7 +178,7 @@ import HSIC
 
 class parameters(object):
 	output_dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/output/'
-	dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/0008/0002/frame-'
+	dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set1/0008/0002/frame-'
 	suffix = '.jpg'
 	current_frame = 0
 	file = dir + str(current_frame).zfill(4) + suffix
