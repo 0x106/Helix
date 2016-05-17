@@ -135,10 +135,7 @@ A[1,2] = 8.
 
 # activity_recognition.plot_points(A,A)
 
-# activity_recognition.match_sample()
-
-num_files = activity_recognition.mocap_similarity()
-activity_recognition.match_sample_image(num_files)
+activity_recognition.mocap_similarity()
 
 # test_articulated_tracking()
 

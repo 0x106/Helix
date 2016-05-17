@@ -1,0 +1,6 @@
+1. Write a set of functions to read from all the different formats and ensure the
+	data is returned in the correct fashion
+	- include a PCA flag to determine whether or not to return the PCA transformed version
+
+2. Re run everything with the covariance matrix estimation framework
+3. Spectral clustering on the activity recognition stuff 

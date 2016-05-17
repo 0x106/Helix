@@ -36,249 +36,82 @@ def plot_points(A, C):
     plt.show()
 
 
-def match_sample_image(num_files):
-    mocap_files = []
 
-    # WALKING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/21/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/22/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/32/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/31/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/47/')   # 2, 7
-    
-    # PLAYGROUND
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/02/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/03/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/06/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/10/')   # 2, 7
-
-    # WALKING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/02/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/03/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/05/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/06/')   # 2, 7
-    
-    # RUNNING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/02/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/03/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/08/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/09/')   # 2, 7
-
-    # DANCING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/02/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/03/')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/18')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/19')   # 2, 7
-
-    N, PCA_DIMS, M = 200, 40, len(mocap_files)
-
-    data = []
-
-    for i in range(len(mocap_files)):
-        data.append()
-
-
-def match_sample():
-
-    mocap_files = []
-
-    # WALKING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(21)+ '.amc')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(22)+ '.amc')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(32)+ '.amc')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(31)+ '.amc')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(47)+ '.amc')   # 2, 7
-
-    # WALKING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(2)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(3)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(4)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(5)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(6)+ '.amc')   # 1, 3
-
-    # RUNNING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(2)+ '.amc')   # 4, 2
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(3)+ '.amc')   # 6, 5
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(4)+ '.amc')   # 3, 6
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(8)+ '.amc')   # 3, 6
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(9)+ '.amc')   # 3, 6
-
-    N, PCA_DIMS, M = 100, 12, len(mocap_files)
-    mocap_data = readData(mocap_files, N, _PCA=True)
-
-    HS = HSIC.HilbertSchmidt(N)
-
-    covariance_data = np.zeros((PCA_DIMS, N*M))
-    for i in range(M):
-        covariance_data[:,i*N:(i+1)*N] = mocap_data[i][:PCA_DIMS,:N]
-
-    HS.set_covariance(covariance_data)
-
-        # PLAYGROUND
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(2)+ '.amc')   # 0, 1
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(3)+ '.amc')   # 0, 1
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(4)+ '.amc')   # 0, 1
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(6)+ '.amc')   # 0, 1
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_'+ str(10)+ '.amc')   # 0, 1
-
-    N, PCA_DIMS, M = 500, 12, len(mocap_files)
-    ___mocap_data___ = readData(mocap_files, N, _PCA=True)
-
-    Q = 100
-    video_subsamples = subsample_video(___mocap_data___[-1], N, Q)
-
-    N = 100
-
-    affinity = np.zeros((5,M))
-
-    results = np.zeros(len(video_subsamples))
-
-    KH = np.zeros((N,N))
-
-    W = 100
-    # KH += HS.AR_get_KH(mocap_data[10][:PCA_DIMS,N-10:W-10])
-    # KH += HS.AR_get_KH(mocap_data[11][:PCA_DIMS,N-10:W-10])
-    # KH += HS.AR_get_KH(mocap_data[12][:PCA_DIMS,N-10:W-10])
-    # KH += HS.AR_get_KH(mocap_data[13][:PCA_DIMS,N-10:W-10])
-    # KH += HS.AR_get_KH(mocap_data[14][:PCA_DIMS,N-10:W-10])
-
-    # KH += HS.AR_get_KH(mocap_data[0][:PCA_DIMS,:])
-    # KH += HS.AR_get_KH(mocap_data[1][:PCA_DIMS,:])
-    # KH += HS.AR_get_KH(mocap_data[2][:PCA_DIMS,:])
-    # KH += HS.AR_get_KH(mocap_data[3][:PCA_DIMS,:])
-    # KH += HS.AR_get_KH(mocap_data[4][:PCA_DIMS,:])
-
-    for i in range(15):
-        KH += HS.AR_get_KH(mocap_data[i][:PCA_DIMS,:])
-
-    KH /= 15
-
-    for i in range(len(video_subsamples)):
-        results[i] = HS.__HSIC__(KH, video_subsamples[i][:PCA_DIMS, :])
-        print i, len(video_subsamples), results[i]
-
-    plt.plot(results)
-    plt.show()
 
 
 
 def subsample_video(video, N, M):
-    # K = N/M
-    K = N - M + 1   # the number of output subsamples
+    K = N/M#N - M + 1   # the number of output subsamples
     print N, M, K
     output = [np.zeros((video.shape[0], M)) for i in range(K)]
 
     for i in range(K):
-        # output[i] = video[:,i*M:(i+1)*M]        
-        output[i] = video[:,i:i+M]
+        output[i] = video[:,i*M:(i+1)*M]    
+
     return output
 
 def mocap_similarity():
 
     mocap_files = []
 
-    # WALKING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(21)+ '.amc')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(22)+ '.amc')   # 7, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(32)+ '.amc')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(31)+ '.amc')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(47)+ '.amc')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(21)+ '.amc')   # 7, 4
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(22)+ '.amc')   # 7, 4
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(32)+ '.amc')   # 2, 7
     
-    # PLAYGROUND
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(2)+ '.amc')   # 0, 1
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(3)+ '.amc')   # 0, 1
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(4)+ '.amc')   # 0, 1
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(6)+ '.amc')   # 0, 1
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_'+ str(10)+ '.amc')   # 0, 1
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(3)+ '.amc')   # 0, 1
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(4)+ '.amc')   # 0, 1
 
-    # WALKING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(2)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(3)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(4)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(5)+ '.amc')   # 1, 3
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(6)+ '.amc')   # 1, 3
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(2)+ '.amc')   # 1, 3
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(3)+ '.amc')   # 1, 3
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(4)+ '.amc')   # 1, 3
 
-    # RUNNING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(2)+ '.amc')   # 4, 2
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(3)+ '.amc')   # 6, 5
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(4)+ '.amc')   # 3, 6
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(8)+ '.amc')   # 3, 6
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(9)+ '.amc')   # 3, 6
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(2)+ '.amc')   # 4, 2
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(3)+ '.amc')   # 6, 5
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(4)+ '.amc')   # 3, 6
 
-    # DANCING
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(2)+ '.amc')   # 0, 4
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(3)+ '.amc')   # 0, 1
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(4)+ '.amc')   # 5, 0
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_'+ str(18)+ '.amc')   # 5, 0
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_'+ str(19)+ '.amc')   # 5, 0
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(2)+ '.amc')   # 0, 4
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(3)+ '.amc')   # 0, 1
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(4)+ '.amc')   # 5, 0
 
-    # JUMPING
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/118/118_'+ str(24)+ '.amc')   # 0, 4
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/118/118_'+ str(25)+ '.amc')   # 0, 1
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/118/118_'+ str(26)+ '.amc')   # 5, 0
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/118/118_'+ str(27)+ '.amc')   # 5, 0
-    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/118/118_'+ str(28)+ '.amc')   # 5, 0
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/26/26_0'+ str(1)+ '.amc')
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/14/14_'+ str(20)+ '.amc')
 
-    N, PCA_DIMS, M = 200, 40, len(mocap_files)
-    mocap_data, num_files = readData(mocap_files, N, _PCA=True)
+    N, PCA_DIMS, M = 1000, 12, len(mocap_files)
+    mocap_data = readData(mocap_files, N, _PCA=True)
 
-    return num_files
+    print mocap_data[0].shape
 
-    HS = HSIC.HilbertSchmidt(N)
+    video_subsamples = subsample_video(mocap_data[0], N, 50)
 
-    covariance_data = np.zeros((PCA_DIMS, N*M))
-    for i in range(M):
-        covariance_data[:,i*N:(i+1)*N] = mocap_data[i][:PCA_DIMS,:N]
-    
+    M = len(video_subsamples)
+
+    print len(video_subsamples)
+    print video_subsamples[0].shape
+
+    print '\n - \n - \n - \n - \n - \n - \n'
+
+    print 'data dims:', video_subsamples[0].shape, mocap_data[0].shape
+
+    # HS = HSIC.HilbertSchmidt(N)
+
+    # covariance_data = np.zeros((PCA_DIMS, N*M))
+    # for i in range(M):
+    #     covariance_data[:,i*N:(i+1)*N] = mocap_data[i][:PCA_DIMS,:]
+
+    HS = HSIC.HilbertSchmidt(100)
+    covariance_data = np.zeros((PCA_DIMS, 100*M))
+    for i in range(len(video_subsamples)):
+        covariance_data[:,i*100:(i+1)*100] = video_subsamples[i][:PCA_DIMS,:]
     HS.set_covariance(covariance_data)
 
+    print 'HSIC data dims:', video_subsamples[0][:PCA_DIMS, :].shape
+
     affinity = np.zeros((M,M))
-    # aff = np.zeros((6,M))
-    
-    KH = [np.zeros((N,N)) for i in range(6)]
-
-    KH[0] += HS.AR_get_KH(mocap_data[0][:PCA_DIMS,:])
-    KH[0] += HS.AR_get_KH(mocap_data[1][:PCA_DIMS,:])
-    # KH[0] += HS.AR_get_KH(mocap_data[2][:PCA_DIMS,:])
-    # KH[0] += HS.AR_get_KH(mocap_data[3][:PCA_DIMS,:])
-    # KH[0] += HS.AR_get_KH(mocap_data[4][:PCA_DIMS,:])
-
-    KH[1] += HS.AR_get_KH(mocap_data[5][:PCA_DIMS,:])
-    KH[1] += HS.AR_get_KH(mocap_data[6][:PCA_DIMS,:])
-    # KH[1] += HS.AR_get_KH(mocap_data[7][:PCA_DIMS,:])
-    # KH[1] += HS.AR_get_KH(mocap_data[8][:PCA_DIMS,:])
-    # KH[1] += HS.AR_get_KH(mocap_data[9][:PCA_DIMS,:])
-
-    KH[2] += HS.AR_get_KH(mocap_data[10][:PCA_DIMS,:])
-    KH[2] += HS.AR_get_KH(mocap_data[11][:PCA_DIMS,:])
-    # KH[2] += HS.AR_get_KH(mocap_data[12][:PCA_DIMS,:])
-    # KH[2] += HS.AR_get_KH(mocap_data[13][:PCA_DIMS,:])
-    # KH[2] += HS.AR_get_KH(mocap_data[14][:PCA_DIMS,:])
-
-    KH[3] += HS.AR_get_KH(mocap_data[15][:PCA_DIMS,:])
-    KH[3] += HS.AR_get_KH(mocap_data[16][:PCA_DIMS,:])
-    # KH[3] += HS.AR_get_KH(mocap_data[17][:PCA_DIMS,:])
-    # KH[3] += HS.AR_get_KH(mocap_data[18][:PCA_DIMS,:])
-    # KH[3] += HS.AR_get_KH(mocap_data[19][:PCA_DIMS,:])
-
-    KH[4] += HS.AR_get_KH(mocap_data[20][:PCA_DIMS,:])
-    KH[4] += HS.AR_get_KH(mocap_data[21][:PCA_DIMS,:])
-    # KH[4] += HS.AR_get_KH(mocap_data[22][:PCA_DIMS,:])
-    # KH[4] += HS.AR_get_KH(mocap_data[23][:PCA_DIMS,:])
-    # KH[4] += HS.AR_get_KH(mocap_data[24][:PCA_DIMS,:])
-
-    KH[5] += HS.AR_get_KH(mocap_data[25][:PCA_DIMS,:])
-    KH[5] += HS.AR_get_KH(mocap_data[26][:PCA_DIMS,:])
 
     for i in range(M):
         for k in range(M):
-            # affinity[i,k] = HS.HSIC_AR(video_subsamples[i][:PCA_DIMS,:], video_subsamples[k][:PCA_DIMS,:])
-            affinity[i,k] = HS.HSIC_AR(mocap_data[i][:PCA_DIMS,:], mocap_data[k][:PCA_DIMS,:])
-            # aff[i,k] = HS.__HSIC__(KH[i], mocap_data[k][:PCA_DIMS, :])
+            affinity[i,k] = HS.HSIC_AR(video_subsamples[i][:PCA_DIMS,:], video_subsamples[k][:PCA_DIMS,:])
             print affinity[i,k]
         print '--------------'
 
@@ -286,7 +119,7 @@ def mocap_similarity():
     plt.show()
 
 
-    clusters = sklearn.cluster.spectral_clustering(affinity, n_clusters=6)
+    clusters = sklearn.cluster.spectral_clustering(affinity, n_clusters=4)
 
     print clusters
 
@@ -353,12 +186,11 @@ def readData(files, N, _PCA=False):
     output = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/data/temp.amc'
     data = []
     DOF = 0
-    num_files = []
     for fidx, f in enumerate(files):
         file = open(f)
         out = open(output, 'w')
         lines = [line.split() for line in file]
-        # print len(lines)
+        print len(lines)
         # N = len(lines)
         for i in range(3, len(lines)):
             if len(lines[i]) == 1:
@@ -372,7 +204,6 @@ def readData(files, N, _PCA=False):
         lines = [[float(x) for x in line.split()] for line in file]
         data.append(np.zeros((N, len(lines[0]))))
         index = np.linspace(0, len(lines)-1, num=N).astype(int)
-        num_files.append(len(lines))
         DOF = len(lines[0])
         for i in range(N):
             for k in range(len(lines[0])):
@@ -382,7 +213,8 @@ def readData(files, N, _PCA=False):
 
         if _PCA:
             data[fidx] = PCA(data[fidx].T)
-    return data, num_files
+    return data
+
 def run():
 
     mocap_files = []

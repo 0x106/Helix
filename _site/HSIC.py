@@ -73,18 +73,6 @@ class HilbertSchmidt(object):
 			self.S = np.eye(_K) * (1./((_K*10000)))
 			self.S[6,6] = (1./((_K*20)))
 
-	def AR_get_KH(self, X):
-		if np.sum(X) == 0:
-			return 0.
-
-		K = np.zeros((self.N,self.N))
-
-		for i in range(self.N):
-			for k in range(self.N):
-				K[i,k] = self.rbf(X[:,i], X[:,k])
-
-		return np.dot(K,self.H)
-
 	def HSIC_AR(self, X, Y):
 	
 		if np.sum(Y) == 0:
@@ -102,9 +90,12 @@ class HilbertSchmidt(object):
 		KH = np.dot(K,self.H)		
 		LH = np.dot(L,self.H)
 
+		a = ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH)))
+		b = ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH))))
+		c = ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 		d = ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
-		return d
+		return d#a, b, c, d#((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
 	def HSIC(self, X, Y, _K, _Q1, _Q2):
 	
@@ -160,7 +151,7 @@ class HilbertSchmidt(object):
 
 		LH = np.dot(L,self.H)
 
-		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
+		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / (np.sqrt((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
 	def rbf(self, x, y):
 		z = x-y
