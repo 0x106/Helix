@@ -5,6 +5,456 @@ import matplotlib.pyplot as plt
 import sklearn
 from sklearn.cluster import KMeans
 
+def Neptune_cluster_TS():
+
+	ref_files = []
+	N, PCA_DIMS = 200, 4
+
+	ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(1)+ '.amc')
+	ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(2)+ '.amc')	
+	ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(10)+ '.amc')
+	ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(11)+ '.amc')
+
+	M = len(ref_files)
+	affinity = np.zeros((M,M))
+
+	for i in range(M):
+		for k in range(M):
+			affinity[i,k] = Neptune_with_temp_sync(ref_files[i], ref_files[k])[0]
+			print '-->', i, k, affinity[i,k]
+	plot2d(affinity)
+	plt.show()
+
+
+def Neptune_with_temp_sync(f1, f2):
+    ref_files = []
+    N, PCA_DIMS, Q = 200, 4, 1000
+
+    ref_files.append(f1)
+    ref_files.append(f2)
+
+    ref_data = readData(ref_files, -1, _PCA=True)
+
+    print ref_data[0].shape[1], ref_data[1].shape[1]
+
+    M = len(ref_data)
+
+    x_, y_ = 0,1
+
+    if ref_data[0].shape[1] <= ref_data[1].shape[1]:
+    	x_,y_ = 0,1
+    else:
+    	x_,y_ = 1,0
+
+    ref_data[x_] = ref_data[x_][:, :Q]
+    # length = ref_data[x_].shape[1]
+    steps = ref_data[y_].shape[1] - Q#ref_data[x_].shape[1]
+
+    ## ---------- set covariance ---------- ##
+    HS = HSIC.HilbertSchmidt(N)
+    covariance_data = np.copy(ref_data[0][:PCA_DIMS, :])
+    for i in range(1,M):
+        covariance_data = np.append(covariance_data, ref_data[i][:PCA_DIMS, :], 1)
+    HS.set_covariance(covariance_data)
+    ## ------------------------------------ ##
+
+    KH = HS.AR_get_KH(downsample(ref_data[x_][:PCA_DIMS, :], N))
+
+    if ref_data[0].shape[1] == ref_data[1].shape[1]:
+    	KH = HS.AR_get_KH(downsample(ref_data[0][:PCA_DIMS, :], N))
+    	Y = downsample(ref_data[1][:PCA_DIMS, :],N)
+    	return HS.__HSIC__(KH, Y), 0
+
+
+    plt.plot(ref_data[x_][0,:])
+    plt.plot(ref_data[y_][0,:])
+    plt.show()
+
+    results = []
+
+    for i in range(0, steps-1, 20):
+    	Y = downsample(ref_data[y_][:PCA_DIMS,i:i+length],N)
+    	results.append(HS.__HSIC__(KH, Y))
+    	print i, results[-1]
+
+    plt.plot(results)
+    plt.show()
+
+    return max(results), results.index(max(results))
+
+
+def Neptune_cluster_KH():
+
+    ref_files = []
+    N, PCA_DIMS = 400, 10
+
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(7)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(8)+ '.amc')
+
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(11)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(12)+ '.amc')
+
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(1)+ '.amc')
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(2)+ '.amc')
+
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(3)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(4)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(5)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(6)+ '.amc')
+
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(7)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(8)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(9)+ '.amc')
+
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(10)+ '.amc')
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(11)+ '.amc')
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(12)+ '.amc')
+
+    ref_data = readData(ref_files, -1, _PCA=True)
+
+    # for i in range(len(ref_files)):
+    # 	ref_data.append(ref_data[i][:,500-(10*i):1500-(10*i)])
+
+    M = len(ref_data)
+
+    for i in range(M):
+    	ref_data[i] = ref_data[i][:,:1000]
+
+    ## ---------- set covariance ---------- ##
+    HS = HSIC.HilbertSchmidt(N)
+    covariance_data = np.copy(ref_data[0][:PCA_DIMS, :])
+    for i in range(1,M):
+        covariance_data = np.append(covariance_data, ref_data[i][:PCA_DIMS, :], 1)
+    HS.set_covariance(covariance_data)
+    ## ------------------------------------ ##
+
+    KH = [np.zeros((N,N)) for i in range(6)]
+
+
+    KH[0] = HS.AR_get_KH(downsample(ref_data[0][:PCA_DIMS, :], N)) + HS.AR_get_KH(downsample(ref_data[1][:PCA_DIMS, :], N))
+    KH[1] = HS.AR_get_KH(downsample(ref_data[2][:PCA_DIMS, :], N)) + HS.AR_get_KH(downsample(ref_data[3][:PCA_DIMS, :], N)) + HS.AR_get_KH(downsample(ref_data[4][:PCA_DIMS, :], N))
+    # KH[2] = HS.AR_get_KH(downsample(ref_data[0][:PCA_DIMS, :], N)) + HS.AR_get_KH(downsample(ref_data[3][:PCA_DIMS, :], N))
+    # KH[3] = HS.AR_get_KH(downsample(ref_data[1][:PCA_DIMS, :], N)) + HS.AR_get_KH(downsample(ref_data[2][:PCA_DIMS, :], N))
+    # KH[4] = HS.AR_get_KH(downsample(ref_data[1][:PCA_DIMS, :], N)) + HS.AR_get_KH(downsample(ref_data[3][:PCA_DIMS, :], N))
+    # KH[5] = HS.AR_get_KH(downsample(ref_data[2][:PCA_DIMS, :], N)) + HS.AR_get_KH(downsample(ref_data[3][:PCA_DIMS, :], N))
+
+    affinity = np.zeros((2,M))
+
+    for i in range(2):
+        for k in range(M):
+
+            # d1 = downsample(ref_data[i][:PCA_DIMS, :], N)
+            d2 = downsample(ref_data[k][:PCA_DIMS, :], N)
+
+            # affinity[i,k] = HS.HSIC_AR(d1, d2)
+            # affinity[i,k] = HS.__HSIC__(KH[i], d2)
+
+            if i == 0:
+            	affinity[i,k] = HS.__HSIC__(KH[i], d2) - HS.__HSIC__(KH[1], d2)
+            else:
+            	affinity[i,k] = HS.__HSIC__(KH[i], d2) - HS.__HSIC__(KH[0], d2)
+
+            print i,k, affinity[i,k]
+
+    # clusters = sklearn.cluster.spectral_clustering(affinity, n_clusters=2)
+    # print clusters
+    plot2d(affinity)
+    plt.show()
+
+
+def KTH():
+    path_ref, ref_files, ref_data = [], [], []
+    N1, N2, PCA_DIMS = 0, 100,2
+
+    path_ref.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/KTH/walking/p')
+    path_ref.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/KTH/jogging/p')
+    path_ref.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/KTH/running/p')
+    # path_ref.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/KTH/boxing/p')
+    # path_ref.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/KTH/handwaving/p')
+    # path_ref.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/KTH/handclapping/p')
+
+    for i in range(len(path_ref)):
+        for k in range(16,19):
+            ref_data.append(get_image_data(path_ref[i]+str(k)+"/d1/", 0, N2))
+            print i, k
+
+
+
+    # ref_data.append(get_image_data(ref_files[0], 0, N2))
+    # ref_data.append(get_image_data(ref_files[1], 0, N2))
+    # ref_data.append(get_image_data(ref_files[2], 0, N2))
+
+    # ref_data.append(get_image_data(ref_files[0], 100, 300))
+    # ref_data.append(get_image_data(ref_files[1], 100, 300))
+    # ref_data.append(get_image_data(ref_files[2], 100, 300))
+
+    M = len(ref_data)
+
+    ## ---------- set covariance ---------- ##
+    HS = HSIC.HilbertSchmidt(N2)
+    covariance_data = np.copy(ref_data[0][:PCA_DIMS, :])
+    for i in range(1,M):
+        covariance_data = np.append(covariance_data, ref_data[i][:PCA_DIMS, :], 1)
+    HS.set_covariance(covariance_data)
+    ## ------------------------------------ ##
+
+    # # plt.plot(ref_data[0][:,0])
+    plt.subplot(131)
+    plt.plot(ref_data[0][0,:])
+    plt.plot(ref_data[1][0,:])
+    plt.plot(ref_data[2][0,:])
+
+    plt.subplot(132)
+    plt.plot(ref_data[3][0,:])
+    plt.plot(ref_data[4][0,:])
+    plt.plot(ref_data[5][0,:])
+
+    plt.subplot(133)
+    plt.plot(ref_data[6][0,:])
+    plt.plot(ref_data[7][0,:])
+    plt.plot(ref_data[8][0,:])
+
+    # # plt.plot(ref_data[1][:,0])
+    # # plt.plot(ref_data[2][:,0])
+
+    plt.show()
+
+    affinity = np.zeros((M,M))
+
+    for i in range(M):
+        for k in range(M):
+
+            affinity[i,k] = HS.HSIC_AR(ref_data[i][:PCA_DIMS,:],ref_data[k][:PCA_DIMS,:])
+            print i,k, affinity[i,k]
+
+    clusters = sklearn.cluster.spectral_clustering(affinity, n_clusters=2)
+    print clusters
+    plot2d(affinity)
+    plt.show()
+
+def get_image_data(prefix, N1=-1, N2=-1):
+
+    # print prefix + str(1)+'.png'
+
+    image = cv2.imread(prefix + str(1)+'.png',0)
+    h,w = image.shape[:2]
+
+    # cv2.imshow("CMU 01 02", image)
+    # cv2.waitKey(1)
+
+    K1, K2 = 0, 0
+    if N2 == -1:    
+
+        for i in range(K1, K2):
+            image = cv2.imread(prefix + str(K+1)+'.png', cv2.IMREAD_COLOR)
+            if image != None:
+                K2 += 1
+            else:   
+                break
+    else:
+        K1 = N1
+        K2 = N2
+
+    data__ = np.zeros((h*w*3, K2 - K1))
+
+    # K2 -= 1
+
+    for i in range(K1, K2):
+        image = cv2.imread(prefix + str(i+1)+'.png', cv2.IMREAD_COLOR)
+        # print prefix + str(i+1)+'.png'
+        data__[:,i-K1] = np.asarray(image)[:,:,:].flatten()
+        # cv2.imshow("CMU 01 02", image)
+        # cv2.waitKey(1)
+
+    # index = np.linspace(1, K-1, num=N)
+
+    # data = PCA(data__[:,index.astype(int)].T)
+    data = PCA(data__.T)
+
+    return data
+
+
+
+
+def Markov(data, HS):
+
+    length = data.shape[1]
+    N = 100
+    M = 20
+    Q = 400
+    step = (length-Q) / M
+    PCA_DIMS = 20
+
+    print N, M, Q, length, step, PCA_DIMS
+
+    affinity = np.zeros((M,M))
+
+    idx = 0
+    for i in range(0,length-Q-step,step):
+
+        d1 = downsample(data[:PCA_DIMS, i:i+Q], N)
+        KH = HS.AR_get_KH(d1)
+        kdx = 0
+        for k in range(0, length-Q-step, step):
+
+            d2 = downsample(data[:PCA_DIMS, k:k+Q], N)
+
+            # affinity[idx,kdx] = HS.HSIC_AR(d1, d2)
+            affinity[idx,kdx] = HS.__HSIC__(KH, d2)
+
+            print idx, kdx, affinity[idx,kdx]
+
+            kdx += 1
+        idx += 1
+
+    plot2d(affinity)
+    plt.show()
+
+
+def Neptune_cluster():
+
+    ref_files = []
+    N, PCA_DIMS = 200, 4
+
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(1)+ '.amc')
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(2)+ '.amc')
+
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(3)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(4)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(5)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(6)+ '.amc')
+
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(7)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(8)+ '.amc')
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(9)+ '.amc')
+
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(10)+ '.amc')
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(11)+ '.amc')
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_'+ str(12)+ '.amc')
+
+    # WALKING
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_'+ str(35)+ '.amc')   # 1, 3
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_'+ str(19)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_0'+ str(2)+ '.amc')   # 1, 3
+
+    # # singing
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/142/142_'+ str(20)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/142/142_'+ str(21)+ '.amc')   # 1, 3
+
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_0'+ str(5)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_0'+ str(6)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_0'+ str(7)+ '.amc')   # 1, 3
+
+    # # rolling
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_'+ str(10)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_'+ str(11)+ '.amc')   # 1, 3
+    
+
+    # # sneaking
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_'+ str(10)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_'+ str(11)+ '.amc')   # 1, 3
+    # # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_'+ str(12)+ '.amc')   # 1, 3
+    # # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_'+ str(13)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/120/120_'+ str(14)+ '.amc')   # 1, 3
+    
+    # # clumsy
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/142/142_0'+ str(2)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/142/142_0'+ str(3)+ '.amc')   # 1, 3
+    
+    # # scared
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/142/142_'+ str(16)+ '.amc')   # 1, 3
+    # ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/142/142_'+ str(17)+ '.amc')   # 1, 3
+
+    ref_data = readData(ref_files, -1, _PCA=False)
+
+    # for i in range(len(ref_files)):
+    # 	ref_data.append(ref_data[i][:,500:1500])
+    # 	ref_data.append(ref_data[i][:,250:1250])
+
+    M = len(ref_data)
+
+    for i in range(M):
+    	ref_data[i] = ref_data[i][:,:1500]
+
+    # cov_file = ['/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_14.amc']
+    # cov_data = readData(cov_file, -1, _PCA=True)
+
+    ## ---------- set covariance ---------- ##
+    HS = HSIC.HilbertSchmidt(N)
+    covariance_data = np.copy(ref_data[0][:PCA_DIMS, :])
+    for i in range(1,M):
+        covariance_data = np.append(covariance_data, ref_data[i][:PCA_DIMS, :], 1)
+    HS.set_covariance(covariance_data)#cov_data[0][:PCA_DIMS, :])
+    ## ------------------------------------ ##
+
+    affinity = np.zeros((M,M))
+
+    for i in range(M):
+        for k in range(M):
+
+            d1 = downsample(ref_data[i][:PCA_DIMS, :], N)
+            d2 = downsample(ref_data[k][:PCA_DIMS, :], N)
+
+            affinity[i,k] = HS.HSIC_AR(d1, d2)
+            print i,k, affinity[i,k]
+
+    clusters = sklearn.cluster.spectral_clustering(affinity, n_clusters=4)
+    print clusters
+    plot2d(affinity)
+    plt.show()
+
+
+def Neptune():
+
+    ref_files, test_files = [], []
+    N, PCA_DIMS = 100, 20
+
+    KH = np.zeros((N,N))
+
+    test_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(2)+ '.amc')
+    # test_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/02/')
+    test_data = (readData(test_files, -1, _PCA=True))[0]
+    # test_data = get_image_data(test_files[0])
+
+    # # print test_data.shape
+
+    # WALKING
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_'+ str(35)+ '.amc')   # 1, 3
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_'+ str(19)+ '.amc')   # 1, 3
+    ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/104/104_0'+ str(2)+ '.amc')   # 1, 3
+
+    M = len(ref_files)
+    ref_data = readData(ref_files, -1, _PCA=True)
+
+    ## ---------- set covariance ---------- ##
+    Mr = ref_data[0].shape[1]
+    HS = HSIC.HilbertSchmidt(N)
+    covariance_data = np.copy(ref_data[0][:PCA_DIMS, :])
+    for i in range(1,M):
+        Mr += ref_data[i].shape[1]
+        covariance_data = np.append(covariance_data, ref_data[i][:PCA_DIMS, :], 1)
+    Mr /= len(ref_files)
+    HS.set_covariance(covariance_data)
+    ## ------------------------------------ ##
+
+    Markov(test_data, HS)
+
+    for i in range(M):
+        KH += HS.AR_get_KH(downsample(ref_data[i], N)[:PCA_DIMS,:])
+
+    results = []
+
+    for i in range(0,  test_data.shape[1] - Mr, 4):
+        data = downsample(test_data[:PCA_DIMS,  i : i+Mr], N)
+        results.append(HS.__HSIC__(KH, data))
+        print i, results[-1]
+
+    plt.plot(results)
+    plt.plot(results, '+')
+    plt.show()
+
+
+
 # A - affinity matrix
 # C - clusters
 def plot_points(A, C):
@@ -43,43 +493,67 @@ def match_sample_image(num_files):
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/21/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/22/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/32/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/31/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/47/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/31/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/47/')   # 2, 7
     
     # PLAYGROUND
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/02/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/03/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/06/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/10/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/06/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/10/')   # 2, 7
 
     # WALKING
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/02/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/03/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/05/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/06/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/05/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/06/')   # 2, 7
     
     # RUNNING
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/02/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/03/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/08/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/09/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/08/')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/09/')   # 2, 7
 
     # DANCING
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/02/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/03/')   # 7, 4
     mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/04/')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/18')   # 2, 7
-    mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/19')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/18')   # 2, 7
+    # mocap_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/19')   # 2, 7
 
     N, PCA_DIMS, M = 200, 40, len(mocap_files)
 
     data = []
 
     for i in range(len(mocap_files)):
-        data.append()
+        data.append(get_image_data(mocap_files[i], N, num_files[i]))
+
+    HS = HSIC.HilbertSchmidt(N)
+
+    covariance_data = np.zeros((PCA_DIMS, N*M))
+    for i in range(M):
+        covariance_data[:,i*N:(i+1)*N] = data[i][:PCA_DIMS,:N]
+    
+    HS.set_covariance(covariance_data)
+
+    affinity = np.zeros((M,M))
+
+    for i in range(M):
+        for k in range(M):
+            affinity[i,k] = HS.HSIC_AR(data[i][:PCA_DIMS,:], data[k][:PCA_DIMS,:])
+            print affinity[i,k]
+        print '--------------'
+
+    plot2d(affinity)
+    plt.show()
+
+
+    clusters = sklearn.cluster.spectral_clustering(affinity, n_clusters=6)
+
+    print clusters
 
 
 def match_sample():
@@ -326,35 +800,17 @@ def mocap_similarity():
     # S = S[idx]
     # V = tmp[idx,:]
 
+def downsample(data, N):
 
-
-def get_image_data(prefix, N, K):
-
-    image = cv2.imread(prefix + str(1)+'.png')
-    h,w = image.shape[:2]
-
-    data__ = np.zeros((h*w*3, K))
-
-    for i in range(K):
-        image = cv2.imread(prefix + str(i+1)+'.png', cv2.IMREAD_COLOR)
-        hsv = cv2.cvtColor(np.copy(image), cv2.COLOR_BGR2HSV)
-        # data__[:,i] = np.asarray(image)[:,:,:].flatten()
-        data__[:,i] = np.asarray(hsv)[:,:,:].flatten()
-
-    index = np.linspace(0, K-1, num=N)
-
-    # data = np.zeros((h*w*3, N))
-
-    data = PCA(data__[:,index.astype(int)].T)
-
-    return data
+    index = np.linspace(0, data.shape[1]-1, num=N).astype(int)
+    output = data[:,index]
+    return output
 
 def readData(files, N, _PCA=False):
     output = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/data/temp.amc'
     data = []
-    DOF = 0
-    num_files = []
     for fidx, f in enumerate(files):
+        # N = -1
         file = open(f)
         out = open(output, 'w')
         lines = [line.split() for line in file]
@@ -370,10 +826,10 @@ def readData(files, N, _PCA=False):
         out.close()
         file = open(output)
         lines = [[float(x) for x in line.split()] for line in file]
+        # if N == -1:
+        N = len(lines)
         data.append(np.zeros((N, len(lines[0]))))
         index = np.linspace(0, len(lines)-1, num=N).astype(int)
-        num_files.append(len(lines))
-        DOF = len(lines[0])
         for i in range(N):
             for k in range(len(lines[0])):
                 data[fidx][i,k] = lines[index[i]][k]
@@ -382,7 +838,7 @@ def readData(files, N, _PCA=False):
 
         if _PCA:
             data[fidx] = PCA(data[fidx].T)
-    return data, num_files
+    return data
 def run():
 
     mocap_files = []
@@ -615,7 +1071,7 @@ def show_tracks(flow_tensor, image, frame, save=False):
     return image, tracks, data
 
 def plot2d(input):
-    im = plt.imshow(input, interpolation='nearest', cmap='spring')
+    im = plt.imshow(input, interpolation='nearest', cmap='jet')
     plt.gca().invert_yaxis()
     plt.colorbar()
 
@@ -851,6 +1307,5 @@ def optical_flow_tracking():
         # plt.plot(results[i,:])
 
     plt.show()
-
 
 

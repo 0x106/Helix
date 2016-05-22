@@ -87,12 +87,10 @@ class HilbertSchmidt(object):
 
 	def HSIC_AR(self, X, Y):
 	
-		if np.sum(Y) == 0:
-			return 0.
+		# if np.sum(Y) == 0:
+		# 	return 0.
 
 		K, L, KH, LH = np.zeros((self.N,self.N)), np.zeros((self.N,self.N)), np.zeros((self.N,self.N)), np.zeros((self.N,self.N))
-
-		# print 'feature dims:', X[0,:].shape, X[:,0].shape
 
 		for i in range(self.N):
 			for k in range(self.N):
@@ -102,9 +100,7 @@ class HilbertSchmidt(object):
 		KH = np.dot(K,self.H)		
 		LH = np.dot(L,self.H)
 
-		d = ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
-
-		return d
+		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
 	def HSIC(self, X, Y, _K, _Q1, _Q2):
 	
@@ -149,8 +145,8 @@ class HilbertSchmidt(object):
 
 	def __HSIC__(self, KH, Y):
 	
-		if np.sum(Y) == 0:
-			return 0.
+		# if np.sum(Y) == 0:
+		# 	return 0.
 
 		L, LH = np.zeros((self.N,self.N)), np.zeros((self.N,self.N))
 
@@ -198,8 +194,6 @@ class HilbertSchmidt(object):
 
 		for i in range(data.shape[1]):
 			data[:,i] += mean
-
-		print self.cov
 
 
 

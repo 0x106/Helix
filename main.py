@@ -113,23 +113,32 @@ def test_articulated_tracking():
 		command = cv2.waitKey(1)
 
 
-
-
-
-
 # ================= #
 #    Main Control   #
 # ================= #
 
-A = np.zeros((3,3))
-A[0,0] = 0.
-A[1,1] = 0.
-A[2,2] = 0.
+activity_recognition.Neptune_cluster_TS()
 
-A[0,1] = 10.
-A[0,2] = 24.
+# import os, sys
 
-A[1,2] = 8.
+# path = "/Users/jordancampbell/Desktop/Helix/code/pyNeptune/dev/misc"
+
+# os.mkdir(path) ;
+
+# A = np.zeros((3,3))
+# A[0,0] = 0.
+# A[1,1] = 0.
+# A[2,2] = 0.
+
+# A[0,1] = 10.
+# A[0,2] = 24.
+
+# A[1,2] = 8.
+
+# activity_recognition.KTH()
+# 
+# activity_recognition.Neptune_cluster_KH()
+# activity_recognition.Neptune_cluster()
 
 # activity_recognition.CHG_match()
 
@@ -137,8 +146,8 @@ A[1,2] = 8.
 
 # activity_recognition.match_sample()
 
-num_files = activity_recognition.mocap_similarity()
-activity_recognition.match_sample_image(num_files)
+# num_files = activity_recognition.mocap_similarity()
+# activity_recognition.match_sample_image(num_files)
 
 # test_articulated_tracking()
 
