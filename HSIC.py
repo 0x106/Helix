@@ -190,8 +190,6 @@ class HilbertSchmidt(object):
 
 		self.cov = np.linalg.inv(self.cov)
 
-		print 'cov dims:', self.cov[0].shape
-
 		for i in range(data.shape[1]):
 			data[:,i] += mean
 

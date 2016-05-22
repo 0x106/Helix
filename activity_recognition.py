@@ -33,9 +33,9 @@ def Neptune_cluster_TS():
 	plt.show()
 
 
-def Neptune_with_temp_sync(f1, f2):
+def Neptune_with_temp_sync(f1, f2, _Q=1200, draw=False):
     ref_files = []
-    N, PCA_DIMS, Q = 200, 4, 1200
+    N, PCA_DIMS = 200, 4
 
     ref_files.append(f1)
     ref_files.append(f2)
@@ -64,30 +64,36 @@ def Neptune_with_temp_sync(f1, f2):
     if ref_data[0].shape[1] == ref_data[1].shape[1]:
     	KH = HS.AR_get_KH(downsample(ref_data[0][:PCA_DIMS, :], N))
     	Y = downsample(ref_data[1][:PCA_DIMS, :],N)
-    	return HS.__HSIC__(KH, Y), 0
+    	result = HS.__HSIC__(KH, Y)
+    	return result, 0., result
 
-    ref_data[x_] = ref_data[x_][:, :Q]
+    ref_data[x_] = ref_data[x_][:, :_Q]
     # length = ref_data[x_].shape[1]
-    steps = ref_data[y_].shape[1] - Q#ref_data[x_].shape[1]
+    steps = ref_data[y_].shape[1] - _Q#ref_data[x_].shape[1]
 
     KH = HS.AR_get_KH(downsample(ref_data[x_][:PCA_DIMS, :], N))
 
-
-    # plt.plot(ref_data[x_][0,:])
-    # plt.plot(ref_data[y_][0,:])
-    # plt.show()
+    if draw:
+    	plt.plot(ref_data[x_][0,:])
+    	plt.plot(ref_data[y_][0,:])
+    	plt.show()
 
     results = []
 
-    for i in range(0, steps-1, 10):
-    	Y = downsample(ref_data[y_][:PCA_DIMS,i:i+Q],N)
+    for i in range(0, int(steps)-1, 10):
+    	Y = downsample(ref_data[y_][:PCA_DIMS,i:i+_Q],N)
     	results.append(HS.__HSIC__(KH, Y))
     	# print i, results[-1]
 
-    # plt.plot(results)
-    # plt.show()
+    if draw:
+    	plt.plot(results)
+    	plt.show()
 
-    return max(results), results.index(max(results))
+    result = max(results)
+    index = results.index(max(results))
+    mean = float(sum(results)) / float(len(results))
+
+    return result, index, mean
 
 
 def Neptune_cluster_KH():

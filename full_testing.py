@@ -8,30 +8,35 @@ import activity_recognition as AR
 def match_activity():
 
 	files, labels = all_testing_files()
-
-	print labels
-
 	file_lengths = get_data_lengths(files)
 
+	print labels
 	print file_lengths.T
 
+	## ------------------------------ ##
 
+	# length of the shortest video
+	Q = np.min(file_lengths)
 
+	print 'Q:', Q
 
+	M = len(files)
+	affinity_specific = np.zeros((M,M))
+	affinity_general  = np.zeros((M,M))
 
+	for i in range(M):
+		for k in range(M):
+			result, index, mean = AR.Neptune_with_temp_sync(files[i], files[k], _Q=Q)
+			affinity_specific[i,k] = result
+			affinity_general[i,k] = mean
+			print i, k, affinity_specific[i,k], affinity_general[i,k]
 
-
-
-
-
-
-
-
-
-
-
-
-
+	plt.subplot(121)
+	AR.plot2d(affinity_specific)
+	
+	plt.subplot(122)
+	AR.plot2d(affinity_general)
+	plt.show()
 
 
 
@@ -43,6 +48,7 @@ def match_activity():
 def all_testing_files():
 	files = []
 	labels = []
+	classes = []
 
 	# backstroke 126
 	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/126/126_0'+ str(1)+ '.amc')
@@ -56,71 +62,27 @@ def all_testing_files():
 	labels.append('freestyle126')
 	labels.append('freestyle126')
 
-	# walking 16
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(21)+ '.amc')
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/16/16_'+ str(22)+ '.amc')
-	labels.append('walking16')
-	labels.append('walking16')
-
 	# playground 01
 	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(2)+ '.amc')
 	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(3)+ '.amc')	
 	labels.append('playground01')
 	labels.append('playground01')
 
-	# walking 09
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(2)+ '.amc')
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/09/09_0'+ str(3)+ '.amc')	
-	labels.append('walking09')
-	labels.append('walking09')
+	# stylised walks 137
+	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/137/137_'+ str(12)+ '.amc')
+	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/137/137_'+ str(16)+ '.amc')
+	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/137/137_'+ str(20)+ '.amc')
+	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/137/137_'+ str(24)+ '.amc')		
+	labels.append('walk137')
+	labels.append('walk137')
+	labels.append('walk137')
+	labels.append('walk137')
 
-	# running 08
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(2)+ '.amc')
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/08/08_0'+ str(3)+ '.amc')	
-	labels.append('running08')
-	labels.append('running08')
-
-	# dancing 05
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(2)+ '.amc')
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/05/05_0'+ str(3)+ '.amc')	
-	labels.append('dancing05')
-	labels.append('dancing05')
-
-	# # WALKING
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/21/')
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/22/') 
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/32/') 
-	# # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/31/')
-	# # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/16/47/')
-
-	# # PLAYGROUND
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/02/')  
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/03/')  
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/04/')  
-	# # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/06/')
-	# # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/01/10/')
-
-	# # WALKING
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/02/')  
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/03/')  
-	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/04/')  
-	# # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/05/')
-	# # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/09/06/')
-
- #    # RUNNING
- #    files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/02/')  
- #    files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/03/')  
- #    files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/04/') 
- #    # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/08/')
- #    # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/08/09/')
-
- #   	# DANCING
- #   	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/02/')  
- #   	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/03/')  
- #   	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/04/')  
- #    # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/18') 
- #    # files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/05/19') 
-
+	# sweeping 13
+	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/13/13_'+ str(23)+ '.amc')
+	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/13/13_'+ str(24)+ '.amc')	
+	labels.append('sweeping13')
+	labels.append('sweeping13')
 
 	return files, labels
 
