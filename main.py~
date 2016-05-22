@@ -119,7 +119,7 @@ def test_articulated_tracking():
 #    Main Control   #
 # ================= #
 
-full_testing.match_activity()
+full_testing.
 
 #vactivity_recognition.Neptune_cluster_TS()
 
