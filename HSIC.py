@@ -100,7 +100,7 @@ class HilbertSchmidt(object):
 		KH = np.dot(K,self.H)		
 		LH = np.dot(L,self.H)
 
-		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
+		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH)))# / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
 	def HSIC(self, X, Y, _K, _Q1, _Q2):
 	
@@ -181,6 +181,8 @@ class HilbertSchmidt(object):
 
 	def set_covariance(self,data):
 
+		# self.cov = np.cov(data)
+
 		mean = np.mean(data, 1)
 	
 		for i in range(data.shape[1]):
@@ -193,6 +195,7 @@ class HilbertSchmidt(object):
 		for i in range(data.shape[1]):
 			data[:,i] += mean
 
+		# print self.cov[:,0]
 
 
 

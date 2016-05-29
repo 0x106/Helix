@@ -32,58 +32,42 @@ def Neptune_cluster_TS():
 	plot2d(affinity)
 	plt.show()
 
+def Neptune_with_temp_sync(d1, d2, HS, N, PCA_DIMS, _Q=1200, draw=False):
+    x_, y_, data = 0,1, [d1, d2]
 
-def Neptune_with_temp_sync(f1, f2, _Q=1200, draw=False):
-    ref_files = []
-    N, PCA_DIMS = 200, 4
-
-    ref_files.append(f1)
-    ref_files.append(f2)
-
-    ref_data = readData(ref_files, -1, _PCA=True)
-
-    # print ref_data[0].shape[1], ref_data[1].shape[1]
-
-    M = len(ref_data)
-
-    x_, y_ = 0,1
-
-    if ref_data[0].shape[1] <= ref_data[1].shape[1]:
+    if d1.shape[1] <= d2.shape[1]:
     	x_,y_ = 0,1
     else:
     	x_,y_ = 1,0
 
-    ## ---------- set covariance ---------- ##
-    HS = HSIC.HilbertSchmidt(N)
-    covariance_data = np.copy(ref_data[0][:PCA_DIMS, :])
-    for i in range(1,M):
-        covariance_data = np.append(covariance_data, ref_data[i][:PCA_DIMS, :], 1)
-    HS.set_covariance(covariance_data)
-    ## ------------------------------------ ##
-
-    if ref_data[0].shape[1] == ref_data[1].shape[1]:
-    	KH = HS.AR_get_KH(downsample(ref_data[0][:PCA_DIMS, :], N))
-    	Y = downsample(ref_data[1][:PCA_DIMS, :],N)
+    if data[0].shape[1] == data[1].shape[1]:
+    	KH = HS.AR_get_KH(downsample(data[0][:PCA_DIMS, :], N))
+    	Y = downsample(data[1][:PCA_DIMS, :],N)
     	result = HS.__HSIC__(KH, Y)
     	return result, 0., result
 
-    ref_data[x_] = ref_data[x_][:, :_Q]
-    # length = ref_data[x_].shape[1]
-    steps = ref_data[y_].shape[1] - _Q#ref_data[x_].shape[1]
 
-    KH = HS.AR_get_KH(downsample(ref_data[x_][:PCA_DIMS, :], N))
+    # data[x_] = data[x_][:, :_Q]
+    _Q = data[x_].shape[1]
+    steps = data[y_].shape[1] - _Q
+
+    KH = HS.AR_get_KH(downsample(data[x_][:PCA_DIMS, :], N))
+
+    # Y = downsample(data[y_][:PCA_DIMS,:_Q],N)
+    # results = HS.__HSIC__(KH, Y)
+
+    # return results, 0, results
 
     if draw:
-    	plt.plot(ref_data[x_][0,:])
-    	plt.plot(ref_data[y_][0,:])
+    	plt.plot(data[x_][0,:])
+    	plt.plot(data[y_][0,:])
     	plt.show()
 
     results = []
 
-    for i in range(0, int(steps)-1, 10):
-    	Y = downsample(ref_data[y_][:PCA_DIMS,i:i+_Q],N)
+    for i in range(0, int(steps)-1, 40):
+    	Y = downsample(data[y_][:PCA_DIMS,i:i+_Q],N)
     	results.append(HS.__HSIC__(KH, Y))
-    	# print i, results[-1]
 
     if draw:
     	plt.plot(results)
