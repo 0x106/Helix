@@ -17,43 +17,52 @@ from sklearn.cluster import KMeans
 def temp_sync():
 
 	files = []
-	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(2)+ '.amc')
-	data = AR.readData(files, -1, _PCA=True)
+	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/01/01_0'+ str(2)+ '.amc')
+	# files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/86/86_'+ str(15)+ '.amc')
+	files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/86/86_0'+ str(9)+ '.amc')
+	data, PCA_DIMS1 = AR.readData(files, -1, _PCA=True)
 
 	ref_files = []
 	ref_files.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/105/105_'+ str(34)+ '.amc')
-	ref_data = AR.readData(ref_files, -1, _PCA=True)
+	ref_data, PCA_DIMS2 = AR.readData(ref_files, -1, _PCA=True)
 
-	print ref_data[0].shape
+	PCA_DIMS = max(PCA_DIMS1, PCA_DIMS2)
 
-	M, N, PCA_DIMS = len(files), 200, 24
+	print ref_data[0].shape, PCA_DIMS
 
-	# plt.plot(ref_data[0][-4,:])
-	# plt.plot(ref_data[0][-2,:])
+	M, N = len(files), 200
+
+	# plt.subplot(121)
+	# plt.plot(ref_data[0][0,:])
+	# plt.plot(ref_data[0][1,:])
 	# plt.plot(ref_data[0][2,:])
+
+	# plt.subplot(122)
+	# plt.plot(ref_data[0][:PCA_DIMS*2,0])
+
+	# plt.show()
 
 	HS = HSIC.HilbertSchmidt(N)
 
 	results = []
 
-	Q = 800#ref_data[0].shape[1]
+	Q = 720
+	offset = 420
 
 	print data[0].shape[1]-Q-10
 
-	for iter in range(0,data[0].shape[1]-Q-10, 20):
+	for iter in range(0,data[0].shape[1]-Q-10, 30):
 
 		cov_data = np.copy(data[0][:PCA_DIMS,iter:iter+Q])
 
-		for r in range(10):
-			cov_data = np.append(cov_data, np.copy(ref_data[0][:PCA_DIMS, 400 + int(10.*r) : 400 + int(10.*r) + Q], 1))
-
-		print cov_data.shape
+		for r in range(4):
+			cov_data = np.append(cov_data, np.copy(ref_data[0][:PCA_DIMS, offset + int(10.*r) : offset + int(10.*r) + Q]), 1)
 
 		HS.set_covariance(cov_data)
 		KH = np.zeros((N,N))
 
-		for r in range(10):
-			KH += HS.AR_get_KH(AR.downsample(ref_data[0][:PCA_DIMS, 400 + int(10.*r) : 400 + int(10.*r) + Q], N))
+		for r in range(4):
+			KH += HS.AR_get_KH(AR.downsample(ref_data[0][:PCA_DIMS, offset + int(10.*r) : offset + int(10.*r) + Q], N))
 
 		Y = AR.downsample(data[0][:PCA_DIMS,iter:iter+Q],N)
 		results.append(HS.__HSIC__(KH, Y))

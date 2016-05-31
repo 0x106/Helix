@@ -798,7 +798,6 @@ def mocap_similarity():
     # V = tmp[idx,:]
 
 def downsample(data, N):
-
     index = np.linspace(0, data.shape[1]-1, num=N).astype(int)
     output = data[:,index]
     return output
@@ -806,6 +805,7 @@ def downsample(data, N):
 def readData(files, N, _PCA=False):
     output = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/data/temp.amc'
     data = []
+    PCA_DIMS = 0
     for fidx, f in enumerate(files):
         # N = -1
         file = open(f)
@@ -834,7 +834,12 @@ def readData(files, N, _PCA=False):
         data[fidx] = data[fidx].T
 
         if _PCA:
-            data[fidx] = PCA(data[fidx].T)
+            # print '-->', data[0].shape,
+            # if files[0] == '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/86/86_'+ str(15)+ '.amc':
+                # data[0] = data[0][:,:int(data[0].shape[1]*0.75)]
+            # print data[0].shape,
+            data[fidx], PCA_DIMS = PCA(data[fidx].T)
+            return data, PCA_DIMS
     return data
 def run():
 
@@ -1093,8 +1098,18 @@ def PCA(X):
     
     X += mu_X
 
-    return Y
+    # plt.plot(S)
+    # plt.show()
 
+    sum = 0
+    result = Y.shape[1] / 2.
+    for i in range(100):
+    	sum += S[i]
+    	if sum / np.sum(S) > 0.95:
+    		result = i 
+    		return Y, result
+
+    return Y, result
 
 def CHG_match():
 
