@@ -230,18 +230,13 @@ def KTH():
     plt.show()
 
 def get_image_data(prefix, N1=-1, N2=-1):
-
-    # print prefix + str(1)+'.png'
+    print prefix + str(1)+'.png'
 
     image = cv2.imread(prefix + str(1)+'.png',0)
     h,w = image.shape[:2]
 
-    # cv2.imshow("CMU 01 02", image)
-    # cv2.waitKey(1)
-
     K1, K2 = 0, 0
-    if N2 == -1:    
-
+    if N2 == -1:   
         for i in range(K1, K2):
             image = cv2.imread(prefix + str(K+1)+'.png', cv2.IMREAD_COLOR)
             if image != None:
@@ -252,25 +247,20 @@ def get_image_data(prefix, N1=-1, N2=-1):
         K1 = N1
         K2 = N2
 
-    data__ = np.zeros((h*w*3, K2 - K1))
-
-    # K2 -= 1
+    data__ = np.zeros((h*w, K2 - K1))
 
     for i in range(K1, K2):
-        image = cv2.imread(prefix + str(i+1)+'.png', cv2.IMREAD_COLOR)
-        # print prefix + str(i+1)+'.png'
-        data__[:,i-K1] = np.asarray(image)[:,:,:].flatten()
-        # cv2.imshow("CMU 01 02", image)
-        # cv2.waitKey(1)
+        image = cv2.imread(prefix + str(i+1)+'.png', 0)#cv2.IMREAD_COLOR)
+        data__[:,i-K1] = np.asarray(image)[:,:].flatten()
+    # data__ = data__[::10, :]
 
-    # index = np.linspace(1, K-1, num=N)
+    # print data__.shape
+    # data__ = data__[:100, :]
+    # print data__.shape
 
-    # data = PCA(data__[:,index.astype(int)].T)
-    data = PCA(data__.T)
+    data, PCA_DIMS = PCA(data__.T)
 
-    return data
-
-
+    return data, PCA_DIMS
 
 
 def Markov(data, HS):
@@ -449,8 +439,6 @@ def Neptune():
     plt.plot(results)
     plt.plot(results, '+')
     plt.show()
-
-
 
 # A - affinity matrix
 # C - clusters
@@ -634,8 +622,6 @@ def match_sample():
 
     plt.plot(results)
     plt.show()
-
-
 
 def subsample_video(video, N, M):
     # K = N/M
@@ -823,8 +809,9 @@ def readData(files, N, _PCA=False):
         out.close()
         file = open(output)
         lines = [[float(x) for x in line.split()] for line in file]
-        # if N == -1:
-        N = len(lines)
+        if N == -1:
+            N = len(lines)
+        print 'reading data:', N, '(', len(lines), ')'
         data.append(np.zeros((N, len(lines[0]))))
         index = np.linspace(0, len(lines)-1, num=N).astype(int)
         for i in range(N):
@@ -838,6 +825,9 @@ def readData(files, N, _PCA=False):
             # if files[0] == '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/86/86_'+ str(15)+ '.amc':
                 # data[0] = data[0][:,:int(data[0].shape[1]*0.75)]
             # print data[0].shape,
+            # print data[fidx].shape
+            # data[fidx] = data[fidx][:, :1000]
+            # print data[fidx].shape
             data[fidx], PCA_DIMS = PCA(data[fidx].T)
             return data, PCA_DIMS
     return data
@@ -1140,7 +1130,6 @@ def CHG_match():
     plot2d(affinity)
     plt.show()
 
-
 def get_opt_data(prefix, IMAGE=False):
 
     suffix_1 = '/frame-'
@@ -1200,8 +1189,6 @@ def get_opt_data(prefix, IMAGE=False):
             data[-1] = PCA(data[-1].T)
 
     return data
-
-
 
 def optical_flow_tracking():
 
@@ -1321,3 +1308,4 @@ def optical_flow_tracking():
     plt.show()
 
 
+# 

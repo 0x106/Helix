@@ -119,7 +119,9 @@ def test_articulated_tracking():
 #    Main Control   #
 # ================= #
 
-full_testing.temp_sync()
+# full_testing.temp_sync()
+full_testing.audio_video()
+# full_testing.temp_sync_mocap_image()
 # full_testing.magnitude_vs_frequency()
 
 # full_testing.match_activity()

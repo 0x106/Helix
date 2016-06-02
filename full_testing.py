@@ -8,10 +8,119 @@ import activity_recognition as AR
 import sklearn
 from sklearn.cluster import KMeans
 
+import aifc
+
 # from mpl_toolkits.mplot3d import Axes3D
 
 # fig = plt.figure()
 # ax = fig.add_subplot(111, projection='3d')
+
+def audio_video():
+
+	audio_file = aifc.open('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/audio_video/audio1.aif')
+	audio = np.fromstring(audio_file.readframes(audio_file.getnframes()), np.short).byteswap()
+
+	video, PCA = AR.get_image_data('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/audio_video/video/', 0, 307)
+
+	print audio.shape
+
+	index = np.linspace(0, audio.shape[0]-1, num=307).astype(int)
+	audio = audio[index]
+	audio_ = np.zeros((1, audio.shape[0]))
+	audio_[0,:] = audio
+	audio = audio_
+	print '>', audio.shape
+	print '>', video.shape
+	PCA = 1
+	M = 307
+	N = 200
+
+	num_iters = M - N
+
+	k1, k2 = int(num_iters / 2.), M - int(num_iters / 2.)
+
+	results = np.zeros(num_iters)
+
+	X = video[0, k1:k2]
+	HS = HSIC.HilbertSchmidt(N)
+
+	for iter in range(num_iters):
+		Y = audio[0, iter:iter+N]
+		cov = np.append(X, Y, 1)
+		print cov.shape
+		HS.set_covariance(cov, 0)
+		results[iter] = HS.HSIC_AR(X, Y)
+
+		print iter, results[iter], num_iters, np.max(results), np.argmax(results)
+
+	plt.plot(results)
+
+	# plt.plot(audio)
+	# plt.plot(video[0,:])
+	plt.show()
+
+def temp_sync_mocap_image():
+
+	mocap_file = []
+	mocap_file.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/86/86_08.amc')
+	image_dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/animations/86_08/'
+
+	# mocap_file.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/64/64_21.amc')
+	# image_dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/animations/64_21/'
+
+	image_rate = 60
+	mocap_rate = 120
+
+	M = 30 * image_rate
+	N = 200
+
+	image_data, PCA2 = AR.get_image_data(image_dir, 0, M)
+
+	print 'image -->', image_data.shape
+
+	mocap_data, PCA1 = AR.readData(mocap_file, M*(mocap_rate/image_rate), _PCA=True)
+	mocap_data = AR.downsample(mocap_data[0], M)
+
+	PCA_DIMS = 20#max(PCA1, PCA2)
+	
+	print 'mocap -->', mocap_data.shape
+	# print image_data.shape
+
+	print 'PCA_DIMS:', PCA_DIMS
+
+	plt.plot(mocap_data[0,:])
+	plt.plot(image_data[0,:])
+	plt.show()
+
+	HS = HSIC.HilbertSchmidt(N)
+
+	window_size = M - 100
+	num_iters = M - window_size
+	k1, k2 = int(num_iters / 2.), M - int(num_iters / 2.)
+
+	results = np.zeros(num_iters)
+
+	# X = AR.downsample(image_data[:PCA_DIMS, k1:k2], N)
+	X = image_data[:PCA_DIMS, k1:k2]
+
+	print window_size, num_iters, M, k1, k2, PCA1, PCA2
+
+	for iter in range(num_iters):
+		# Y = AR.downsample(mocap_data[:PCA_DIMS, iter:iter+window_size], N)
+		Y = mocap_data[:PCA_DIMS, iter:iter+window_size]
+
+		cov_data = np.append(X, Y, 1)
+		# print X.shape, Y.shape, cov_data.shape
+
+		HS.set_covariance(cov_data, 0)
+
+		results[iter] = HS.HSIC_AR(X, Y)
+
+		print iter, results[iter], num_iters, np.max(results), np.argmax(results)
+
+	plt.plot(results)
+	plt.show()
+
 
 
 def temp_sync():

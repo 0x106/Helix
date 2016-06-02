@@ -57,6 +57,8 @@ class HilbertSchmidt(object):
 	S[6,6] = (1./((K*20)))
 
 	cov = np.zeros((K,K))
+	cov1 = np.zeros((K,K))
+	cov2 = np.zeros((K,K))
 
 	def __init__(self, N, _K=7, _Q=200):
 		self.N = N
@@ -94,13 +96,16 @@ class HilbertSchmidt(object):
 
 		for i in range(self.N):
 			for k in range(self.N):
-				K[i,k] = self.rbf(X[:,i], X[:,k])
-				L[i,k] = self.rbf(Y[:,i], Y[:,k])
+				K[i,k] = self.rbf(X[i], X[k], 0)
+				L[i,k] = self.rbf(Y[i], Y[k], 0)
+
+		# print K[:5,:5]
+		# print L[:5,:5]
 
 		KH = np.dot(K,self.H)		
 		LH = np.dot(L,self.H)
 
-		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH)))# / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
+		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
 	def HSIC(self, X, Y, _K, _Q1, _Q2):
 	
@@ -158,10 +163,14 @@ class HilbertSchmidt(object):
 
 		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
-	def rbf(self, x, y):
+	def rbf(self, x, y, type=0):
 		z = x-y
+		# if type == 1:
+		# 	q = np.dot(z.T, np.dot(self.cov1,z))
+		# elif type == 2:
+		# 	q = np.dot(z.T, np.dot(self.cov2,z))
+		# else:
 		q = np.dot(z.T, np.dot(self.cov,z))
-		# q = np.dot(z.T, np.dot(self.S,z))
 		return np.exp(-q)
 
 	def rbf2(self, x, y, _S):
@@ -179,23 +188,23 @@ class HilbertSchmidt(object):
 		return self.K
 
 
-	def set_covariance(self,data):
+	def set_covariance(self,data, type=0):
 
 		# self.cov = np.cov(data)
 
-		mean = np.mean(data, 1)
+		# if data.rows > 1:
+		# 	mean = np.mean(data, 1)
 	
-		for i in range(data.shape[1]):
-			data[:,i] -= mean
+		# 	for i in range(data.shape[1]):
+		# 		data[:,i] -= mean
 
-		self.cov = np.dot(data, data.T) / (data.shape[1] - 1)
+		# 	cov = np.dot(data, data.T) / (data.shape[1] - 1)
+		# 	self.cov = np.linalg.inv(cov)
 
-		self.cov = np.linalg.inv(self.cov)
-
-		for i in range(data.shape[1]):
-			data[:,i] += mean
-
-		# print self.cov[:,0]
-
+		# 	for i in range(data.shape[1]):
+		# 		data[:,i] += mean
+		# else:
+		self.cov = np.cov(data)
+		print self.cov
 
 
