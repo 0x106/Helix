@@ -48,6 +48,78 @@ import matplotlib.pyplot as plt
 # 	return ((1. / (N*N)) * np.trace(np.dot(KH,LH))) / (np.sqrt((1. / (N*N)) * np.trace(np.dot(LH,LH))))
 
 
+class TS_HilbertSchmidt(object):
+
+	N = 10
+	K = [10,10, 10, 10]
+
+	H = np.zeros((N,N))
+	cov = [np.zeros((K[i],K[i])) for i in range(4)]
+
+	def set_PQ(self, X,Y):
+		self.cov[2] = np.cov(X)
+		self.cov[3] = np.cov(Y)
+
+		self.P, self.Q, self.PH, self.QH = np.zeros((self.N,self.N)), np.zeros((self.N,self.N)), np.zeros((self.N,self.N)), np.zeros((self.N,self.N))
+
+		for i in range(self.N):
+			for k in range(self.N):
+				self.P[i,k] = self.rbf(X[:,i], X[:,k], self.cov[2])
+				self.Q[i,k] = self.rbf(Y[:,i], Y[:,k], self.cov[3])
+
+		self.PH = np.dot(self.P,self.H)		
+		self.QH = np.dot(self.Q,self.H)
+
+	def __init__(self, N, K=[4,4]):
+		self.N = N
+		self.K = K
+		self.H = np.zeros((self.N,self.N))
+		for i in range(self.N):
+			for k in range(self.N):
+				self.H[i,k] = 0. - (1./self.N)
+			self.H[i,i] = 1. - (1./self.N)
+
+	def set_cov(self, data):
+		if len(data) == 2:
+			self.cov[0] = np.cov(data[0])
+			self.cov[1] = np.cov(data[1])
+		else:
+			self.cov = np.cov(data)
+		# print self.cov
+
+	def HSIC(self, X, Y):
+		K, L, KH, LH = np.zeros((self.N,self.N)), np.zeros((self.N,self.N)), np.zeros((self.N,self.N)), np.zeros((self.N,self.N))
+
+		for i in range(self.N):
+			for k in range(self.N):
+				K[i,k] = self.rbf(X[:,i], X[:,k], self.cov[0])
+				L[i,k] = self.rbf(Y[:,i], Y[:,k], self.cov[1])
+				# K[i,k] = self.rbf(X[:,i], X[:,k], self.cov)
+				# L[i,k] = self.rbf(Y[:,i], Y[:,k], self.cov)
+
+		KH = np.dot(K,self.H)		
+		LH = np.dot(L,self.H)
+
+		# print KH[:5,:5]
+		# print LH[:5,:5]
+
+		# a = (1. / (self.N*self.N*self.N*self.N)) * np.trace(np.dot(np.dot(KH,LH), np.dot(self.PH, self.QH)))
+		# b = (1. / (self.N*self.N)) * np.trace(np.dot(KH,KH))
+		# c = (1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))
+		# d = (1. / (self.N*self.N)) * np.trace(np.dot(self.PH,self.PH))
+		# e = (1. / (self.N*self.N)) * np.trace(np.dot(self.QH,self.QH))
+
+		# print a, b, c, d, e
+
+		# return a / np.sqrt(b*c*d*e)
+
+		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
+
+	def rbf(self, x, y, cov):
+		z = x-y
+		q = np.dot(z.T, np.dot(cov,z))
+		return np.exp(-q)
+
 class HilbertSchmidt(object):
 
 	N = 10

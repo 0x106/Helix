@@ -229,7 +229,7 @@ def KTH():
     plot2d(affinity)
     plt.show()
 
-def get_image_data(prefix, N1=-1, N2=-1):
+def get_image_data(prefix, N1=-1, N2=-1, optical_flow=False):
     print prefix + str(1)+'.png'
 
     image = cv2.imread(prefix + str(1)+'.png',0)
@@ -248,17 +248,27 @@ def get_image_data(prefix, N1=-1, N2=-1):
         K2 = N2
 
     data__ = np.zeros((h*w, K2 - K1))
+    tensor_flow = []
 
     for i in range(K1, K2):
         image = cv2.imread(prefix + str(i+1)+'.png', 0)#cv2.IMREAD_COLOR)
         data__[:,i-K1] = np.asarray(image)[:,:].flatten()
-    # data__ = data__[::10, :]
-
-    # print data__.shape
-    # data__ = data__[:100, :]
-    # print data__.shape
-
-    data, PCA_DIMS = PCA(data__.T)
+        if optical_flow:
+            next_image = cv2.imread(prefix + str(i+2)+'.png', 0)
+            flow = cv2.calcOpticalFlowFarneback(image,next_image, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+            tensor_flow.append(flow)
+            frame = cv2.imread(prefix + str(i+1)+'.png', cv2.IMREAD_COLOR)
+            # flow_img = draw_flow(frame, flow)
+            # cv2.imshow('flow', flow_img)
+            # cv2.waitKey(1)
+    if optical_flow: 
+        image = cv2.imread(prefix + str(i+1)+'.png', cv2.IMREAD_COLOR)
+        flow_img, tracks, data = show_tracks(tensor_flow, image, K2)
+        cv2.imshow('flow', flow_img)
+        cv2.waitKey(0)
+        data, PCA_DIMS = PCA(data.T)
+    else:
+        data, PCA_DIMS = PCA(data__.T)
 
     return data, PCA_DIMS
 

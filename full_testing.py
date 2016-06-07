@@ -20,46 +20,130 @@ def audio_video():
 	audio_file = aifc.open('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/audio_video/audio1.aif')
 	audio = np.fromstring(audio_file.readframes(audio_file.getnframes()), np.short).byteswap()
 
-	video, PCA = AR.get_image_data('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/audio_video/video/', 0, 307)
+	video_frames = 307
+	video, PCA = AR.get_image_data('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/audio_video/video/', 0, video_frames, optical_flow=False)
+
+	audio = audio[:int(audio.shape[0]*(video_frames/307.))]
+
+	index = np.linspace(0, audio.shape[0]-1, num=video_frames).astype(int)
+	audio = audio[index]
+
+	audio_ = np.zeros((1, audio.shape[0]))
+	audio_[0,:] = audio
+	audio = audio_
+
+	# plt.subplot(221)
+	# plt.plot(audio[0,:])
+	# plt.plot(video[0,:])
+
+	# plt.subplot(222)
+	# plt.plot(audio[0,:])
+	# plt.plot(video[1,:])
+
+	# plt.subplot(223)
+	# plt.plot(audio[0,:])
+	# plt.plot(video[2,:])
+
+	# plt.subplot(224)
+	# plt.plot(audio[0,:])
+	# plt.plot(video[3,:])
+	# plt.show()
+
+	K = 40
+	N = 160
+
+	HS = HSIC.TS_HilbertSchmidt(N, K=[1,1])
+
+	# X_ = video[:40, 40:40+N]
+	# Y_ = audio[:1, 40:40+N]
+	# HS.set_PQ(X_, Y_)
+
+	X = video[:40, K:K+N]
+
+	idx = 0
+	results = np.zeros(40)
+	for i in range(K - 20, K + 20):
+		Y = audio[:1, i:i+N]
+		HS.set_cov([X,Y])
+		# HS.set_cov(np.append(X,Y,1))
+		# plt.plot(X[0,:])
+		# plt.plot(Y[0,:])
+		# plt.show()
+		results[idx] = HS.HSIC(X, Y)
+		print idx, i, results[idx], np.max(results), np.argmax(results)
+		idx += 1
+
+	plt.plot(results)
+	plt.show()
+
+def audio_video2():
+
+	M = 500
+	N = 200
+	W = 200
+
+	audio_file = aifc.open('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/audio_video/2/audio.aif')
+	audio = np.fromstring(audio_file.readframes(audio_file.getnframes()), np.short).byteswap()
+
+	print 'extracted audio'
+
+	video, PCA = AR.get_image_data('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/audio_video/2/video/', 0, M)
+
+	print 'extracted video'
+
+	P = M/ 1214.
+
+	print audio.shape, P
+	audio = audio[:int(audio.shape[0]*P)]
 
 	print audio.shape
 
-	index = np.linspace(0, audio.shape[0]-1, num=307).astype(int)
+	index = np.linspace(0, audio.shape[0]-1, num=M*10).astype(int)
 	audio = audio[index]
 	audio_ = np.zeros((1, audio.shape[0]))
 	audio_[0,:] = audio
 	audio = audio_
-	print '>', audio.shape
-	print '>', video.shape
-	PCA = 1
-	M = 307
-	N = 200
 
-	num_iters = M - N
+	print '>', video.shape
+	print '>', audio.shape
+
+	# plt.subplot(121)
+	# plt.plot(audio[0,:])
+	# plt.subplot(122)
+	# plt.plot(video[0,:])
+	# plt.show()
+
+	num_iters = M - W
 
 	k1, k2 = int(num_iters / 2.), M - int(num_iters / 2.)
 
+	Q = 50
+
 	results = np.zeros(num_iters)
 
-	X = video[0, k1:k2]
-	HS = HSIC.HilbertSchmidt(N)
+	# PCA = 1
+	X = video[:1, Q:Q+N]
+	HS = HSIC.TS_HilbertSchmidt(N, K=[1,1])
 
-	for iter in range(num_iters):
-		Y = audio[0, iter:iter+N]
-		cov = np.append(X, Y, 1)
-		print cov.shape
-		HS.set_covariance(cov, 0)
-		results[iter] = HS.HSIC_AR(X, Y)
+	print 'video:', Q, Q+N
+	print 'audio:', 0, '-', N, '|', 99, '-', 99+N
 
-		print iter, results[iter], num_iters, np.max(results), np.argmax(results)
-
+	idx =0
+	# for iter in range(Q-(num_iters/2), Q+(num_iters/2)):
+	for iter in range(25, 75):
+		Y = audio[:1, iter:iter+N]
+		HS.set_cov([X,Y])
+		results[idx] = HS.HSIC(X, Y)
+		print idx, iter, results[idx], num_iters, np.max(results), np.argmax(results)
+		# plt.plot(X[0,:])
+		# plt.plot(Y[0,:])
+		# plt.show()
+		idx += 1
 	plt.plot(results)
-
-	# plt.plot(audio)
-	# plt.plot(video[0,:])
 	plt.show()
 
 def temp_sync_mocap_image():
+	
 
 	mocap_file = []
 	mocap_file.append('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CMU/all_asfamc/subjects/86/86_08.amc')
