@@ -103,53 +103,20 @@ def test_articulated_tracking():
 
 	P_data, P_KH = util.descriptors(params, points, HS, True)		# init KH
 
-	# points = model.get_points()
-	# for i in range(len(points)):
-	# 	cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
-	# for i in range(len(points)-1):
-	# 	if i != 3:
-	# 		cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
-	# cv2.imshow("Neptune - Image", image)
-	# cv2.waitKey(0)
-
-	# return
-
-	state = [0.,0.,-40*0.01, 0.,0.]
-	model = articulated.wiggle(model, state)
-	points = model.get_points(all_points=True)
-	N_data, N_KH = util.descriptors(params, points, HS, True)		
-	model = articulated.wiggle(model, state, inverse=True)
+	N_KH = get_KH(model, [0.,0.,-40*0.01, 0.,0.], params, HS)
 
 	# --------- positive examples --------- #
-
 	for i in range(-4, 4):
-
 		ignore = [0]
-
 		if i not in ignore:
-
-			state = [0.,0.,i*0.01, 0.,0.]
-			model = articulated.wiggle(model, state)
-			points = model.get_points(all_points=True)
-			__P_data, __P_KH = util.descriptors(params, points, HS, True)		
-			P_KH += __P_KH
-			model = articulated.wiggle(model, state, inverse=True)
+			P_KH = get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
+	# ------------------------------------- #
 
 	# --------- negative examples --------- #
-
 	for i in range(-40, 40, 10):
-
 		ignore = [-40, -20, -10, 0, 10, 20]
-
 		if i not in ignore:
-
-			state = [0.,0.,i*0.01, 0.,0.]
-			model = articulated.wiggle(model, state)
-			points = model.get_points(all_points=True)
-			__N_data, __N_KH = util.descriptors(params, points, HS, True)		
-			N_KH += __N_KH
-			model = articulated.wiggle(model, state, inverse=True)
-
+			N_KH = get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
 	# ------------------------------------- #
 
 	results = [np.zeros(200) for i in range(3)]
