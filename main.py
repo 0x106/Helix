@@ -176,7 +176,14 @@ def test_articulated_tracking():
 #    Main Control   #
 # ================= #
 
-track_articulated()
+
+
+print 'In branch occluded-parts-testing'
+
+
+
+
+# track_articulated()
 # test_articulated_tracking()
 
 # full_testing.temp_sync()
