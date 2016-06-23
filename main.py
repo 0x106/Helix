@@ -96,12 +96,16 @@ def test_articulated_tracking():
 	model = articulated.articulated_model(image.shape)
 
 	points = model.get_points(all_points=True)
+	partials = [model.get_partial_points(0), model.get_partial_points(1)]
 	print len(points)
 	
 	HS = HSIC.HilbertSchmidt(len(points))
-	N_HS = HSIC.HilbertSchmidt(len(points))
+	partial_HS = HSIC.HilbertSchmidt(len(partials[0]))
 
-	P_data, P_KH = util.descriptors(params, points, HS, True)		# init KH
+	P_data, P_KH = util.descriptors(params, points, HS, True)
+
+	left_data, left_KH = util.descriptors(params, partials[0], partial_HS, True) 
+	right_data, right_KH = util.descriptors(params, partials[1], partial_HS, True) 
 
 	N_KH = get_KH(model, [0.,0.,-40*0.01, 0.,0.], params, HS)
 
@@ -109,29 +113,44 @@ def test_articulated_tracking():
 	for i in range(-4, 4):
 		ignore = [0]
 		if i not in ignore:
-			P_KH = get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
+			P_KH += get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
 	# ------------------------------------- #
 
 	# --------- negative examples --------- #
 	for i in range(-40, 40, 10):
 		ignore = [-40, -20, -10, 0, 10, 20]
 		if i not in ignore:
-			N_KH = get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
+			N_KH += get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
 	# ------------------------------------- #
 
-	results = [np.zeros(200) for i in range(3)]
+	results = [np.zeros(200) for i in range(5)]
 	count = 0
 
-	command = cv2.waitKey(1)
-
-	model.rz(-1,1,-100*0.01)
 
 	points = model.get_points()
+	for i in range(len(points)):
+		cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255),-1)
+
+	for i in range(len(points)-1):
+		if i != 3:
+			cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0),2)
+
+	cv2.imshow("Neptune - Image", image)
+	command = cv2.waitKey(0)
+
+	return
+
+	model.rz(-1,1,-100*0.01)
 
 	# for i in range(20):
 	# 	params.update()
 
+	# params.apply_noise()
+
+
+
 	while(command != 'q'):
+		params.apply_noise()
 		image, hsv, dt = params.get_frames()
 
 		model.rz(-1,1,0.01)
@@ -139,31 +158,44 @@ def test_articulated_tracking():
 		points = model.get_points()
 
 		for i in range(len(points)):
-			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
+			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255),-1)
 
 		for i in range(len(points)-1):
 			if i != 3:
-				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
+				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0),2)
 
 		points = model.get_points(all_points=True)
 
 		for i in range(len(points)):
-			cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,255,0))
+			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,255,0),-1)
 
 		__data, __KH = util.descriptors(params, points, HS, True)
 
 		results[0][count] = HS.__HS_IC__(P_KH, __KH)
-		results[1][count] = N_HS.__HS_IC__(N_KH, __KH)
-		results[2][count] = results[0][count] - results[1][count] 
+		results[1][count] =	HS.__HS_IC__(N_KH, __KH)
+		results[2][count] = results[0][count] - results[1][count]
+
+
+		# partials = [model.get_partial_points(0), model.get_partial_points(1)]
+		# left_data, __left_KH = util.descriptors(params, partials[0], partial_HS, True) 
+		# right_data, __right_KH = util.descriptors(params, partials[1], partial_HS, True)
+
+		# results[3][count] = partial_HS.__HS_IC__(left_KH, __left_KH)
+		# results[4][count] =	partial_HS.__HS_IC__(right_KH, __right_KH)
 
 		print count, [results[i][count] for i in range(3)]
 
 		cv2.imshow("Neptune - Image", image)
 
+		cv2.imwrite('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/pose_results/'+str(count)+'.png', image)
+
+
 		if count == results[i].shape[0]-1:
 			plt.plot(results[0])
 			plt.plot(results[1])
 			plt.plot(results[2])
+			# plt.plot(results[3])
+			# plt.plot(results[4])
 			plt.show()
 			return
 
@@ -176,8 +208,10 @@ def test_articulated_tracking():
 #    Main Control   #
 # ================= #
 
-track_articulated()
-# test_articulated_tracking()
+print 'Modelling occlusions'
+
+# track_articulated()
+test_articulated_tracking()
 
 # full_testing.temp_sync()
 # full_testing.audio_video()

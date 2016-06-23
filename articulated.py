@@ -10,7 +10,7 @@ class joint(object):
 	R 		= np.eye(4)
 	T 		= np.eye(4)
 
-	N = 14
+	N = 40
 	radius = 110
 	points = []
 
@@ -109,15 +109,53 @@ class articulated_model(object):
 				self.tx(i, k, self.segment_length)	
 				self.tx(i, k, self.segment_length)
 
-		self.rz(0,1, - 0.8)
+		# self.rz(0,1, - 0.8)
+		self.rz(0,1, - 0.9)
 		self.rz(0,2, - 0.4)
 		self.rz(0,3, - 0.2)
 		
-		self.rz(1,1, - 1.96)
-		self.rz(1,2, 0.08)
+		self.rz(1,1, - 2.06)
+		self.rz(1,2, 0.2)
+		self.rz(1,3, 0.05)
 
 	def get_legs(self):
 		return self.legs
+
+	def get_partial_points(self, _set):
+		input = []
+
+		for p in range(self.num_joints-1, -1, -1):
+				
+			tr = np.eye(4)										
+				
+			for k in range(1, p+1):
+				tr = np.dot(tr, np.dot(self.legs[_set][k].get_T(), self.legs[_set][k].get_R())) 
+				
+			self.legs[_set][p].set_pt(np.dot(tr, self.legs[_set][0].get_pt()))
+				
+			if p <= self.num_joints-1:
+				points = self.legs[_set][p].get_points()
+				for n in range(self.legs[0][1].get_num_points()):
+					pt = np.dot(tr, np.dot( points[n] ,self.legs[_set][0].get_pt()))
+					if p > 0:
+						input.append(pt)
+				
+			else:
+				if p > 0:
+					input.append(self.legs[_set][p].get_pt())
+
+		proj = np.eye(3,4)
+		R = np.eye(4)
+		T = np.eye(4)
+		T[2,3] = 50
+
+		output = []
+
+		for i in range(len(input)):
+			H = np.dot(self.M, np.dot(np.eye(3,4), np.dot(T, np.dot(R, input[i]))))
+			output.append(H[:2] / H[2])
+
+		return output
 
 	def get_points(self, all_points=False):
 		input = []

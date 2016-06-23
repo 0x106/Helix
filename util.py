@@ -193,6 +193,8 @@ class parameters(object):
 
 	counter = 15
 
+	noise_counter = 0
+
 	def get_filename(self):
 		self.counter += 1
 		return self.output_dir, self.counter, self.current_frame, self.suffix
@@ -224,6 +226,37 @@ class parameters(object):
 
 	def get_frames(self):
 		return np.copy(self.image), np.copy(self.hsv), np.copy(self.dt)
+
+	def apply_noise(self):
+
+		self.current_frame -= 1
+		self.update()
+
+		num = 40000
+
+		x = [(np.random.rand(num)*self.image.shape[0]).astype(int)]
+		y = [(np.random.rand(num)*self.image.shape[1]).astype(int)]
+		r1 = [np.random.rand(3) * 1000. for i in range(num)]
+		r2 = [np.random.rand(3) * 1000. for i in range(num)]
+		r3 = [np.random.rand() * 1000. for i in range(num)]
+
+		self.image[x, y, :] = r1 	#np.random.rand(3) * 1000.
+		self.hsv[x, y, :] 	= r2 	#np.random.rand(3) * 1000.
+		self.dt[x, y] 		= r3 	#np.random.rand() * 1000.
+
+		x = 90
+		y = 80
+		x_ = 20
+		y_ = 60
+
+		for r in range(y - y_, y + y_):
+			for c in range(x - x_, y + x_):
+				self.image[r,c,:] = np.random.rand(3) * 10.
+				self.hsv[r,c,:] = np.random.rand(3) * 10.
+				self.dt[r,c] = np.random.rand()
+
+		# cv2.imwrite('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/pose_results/'+str(self.noise_counter)+'.png', self.image)
+		self.noise_counter += 1
 
 def descriptors(params, points, HS, init=False):
 
