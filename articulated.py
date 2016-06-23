@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import util
+import matplotlib.pyplot as plt
 
 class joint(object):
 	pt 		= np.zeros(4)
@@ -73,12 +74,12 @@ class articulated_model(object):
 
 	# general parameters
 	num_legs = 2	
-	num_joints = 7
+	num_joints = 5
 
 	legs = [[]]
 
 	# can be changed to an array for variable lengths later
-	segment_length = 68.
+	segment_length = 120.#68.
 
 	M = np.eye(3)
 
@@ -113,7 +114,7 @@ class articulated_model(object):
 		self.rz(0,3, - 0.2)
 		
 		self.rz(1,1, - 1.96)
-		self.rz(1,2, 0.1)
+		self.rz(1,2, 0.08)
 
 	def get_legs(self):
 		return self.legs
@@ -220,20 +221,47 @@ class articulated_model(object):
 			self.legs[_L][_J].set_R(np.dot(R_, self.legs[_L][_J].get_R()))
 
 
+def wiggle(model, w, inverse=False):
 
-def optimise(state, initial_model, params, P_KH, HS, display=False):
+	# move the model into the given pose
+	
+	if inverse:
+		w = [w[i] * -1 for i in range(len(w))]
+
+	model.tx(-1,1,w[0])
+	model.tx(-1,1,w[1])
+	model.rz(-1,1,w[2])
+
+	model.rz(0,1,w[3])
+	model.rz(1,1,w[4])
+
+	# idx = 0
+
+	# constraints = [i for i in range((model.num_legs * (model.num_joints-1)) + 6)]
+	# constraints.remove(0,1,5)#,11,17)
+	# w[constraints] = 0.
+
+	# for i in range(-1, model.num_legs):
+	# 	for k in range(1, model.num_joints):
+
+	# 		model.tx(i,k, w[idx+0])
+	# 		model.ty(i,k, w[idx+1])
+	# 		model.tz(i,k, w[idx+2])
+	# 		model.rx(i,k, w[idx+3])
+	# 		model.ry(i,k, w[idx+4])
+	# 		model.rz(i,k, w[idx+5])
+
+	# 		idx += 6
+
+	return model
+
+def compute_energy(state, initial_model, params, P_KH, N_KH, HS, display=False):
 	image, hsv, dt = params.get_frames()
 	model = articulated_model(image.shape)
 
 	model.copy(initial_model)
 
-	## move the model into the given pose
-	model.tx(-1,1,state[0])
-	model.tx(-1,1,state[1])
-	model.rz(-1,1,state[2])
-
-	model.rz(0,1,state[3])
-	model.rz(1,1,state[4])
+	model = wiggle(model, state)
 	
 	if display:
 		## draw the model for testing
@@ -241,7 +269,7 @@ def optimise(state, initial_model, params, P_KH, HS, display=False):
 		for i in range(len(points)):
 			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
 		for i in range(len(points)-1):
-			if i != 5:
+			if i != 3:
 				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
 		
 		points = model.get_points(all_points=True)
@@ -250,7 +278,10 @@ def optimise(state, initial_model, params, P_KH, HS, display=False):
 
 		__dir, __counter, __current_frame, __suffix = params.get_filename() 
 
+
 		cv2.imwrite(__dir + str(__counter) + '__' + str(__current_frame) + __suffix, image)
+
+		# print __dir + str(__counter) + '__' + str(__current_frame) + __suffix
 
 		cv2.imshow("Neptune - Image", image)
 		cv2.waitKey(1)
@@ -259,37 +290,45 @@ def optimise(state, initial_model, params, P_KH, HS, display=False):
 	points = model.get_points(all_points=True)
 	data, LH = util.descriptors(params, points, HS)
 
-	if np.sum(data) == 0:
-		return 0.
+	positive = HS.__HS_IC__(P_KH, LH)
+	negative = HS.__HS_IC__(N_KH, LH)
 
-	N = HS.get_N()
+	result = positive - negative
 
-	result = ((1. / (N*N)) * np.trace(np.dot(P_KH,LH))) / (np.sqrt((1. / (N*N)) * np.trace(np.dot(LH,LH))))
-	
-	print state, result
+	# print state, result
 
 	return result
 
-def PSO(state, initial_model, params, P_KH, HS):
+def PSO(state, initial_model, params, P_KH, N_KH, HS):
 
-	M = 20        # number of particles
+	M = 100        # number of particles
 	K = len(state) 	      # num parameters to define functions
 
 	c1, c2, omega       = 1.49618, 1.49618, 0.7298
 	p, v = np.zeros((M, K+1)), np.zeros((M, K))
 	b, g = np.zeros((M, K+1)), np.zeros(K+1)
 
-	MAX_ITER = 10
+	MAX_ITER = 2
 
 	results = []
 
-	for i in range(M):	
+	p[0,:] = 0.
+	v[0,0]   = (np.random.rand(1) * 5.) - 2.5
+	v[0,1]   = (np.random.rand(1) * 5.) - 2.5
+	v[0,2]   = (np.random.rand(1) * 0.25) - 0.125
+	v[0,3]   = (np.random.rand(1) * 0.25) - 0.125
+	v[0,4]   = (np.random.rand(1) * 0.25) - 0.125
+	p[0,K] = compute_energy(p[0,:K], initial_model, params, P_KH, N_KH, HS)
+
+	print p[0,:]
+
+	for i in range(1, M):	
 		p[i,0]   = (np.random.rand(1) * 10.) - 5.
 		p[i,1]   = (np.random.rand(1) * 10.) - 5.
 		p[i,2]   = (np.random.rand(1) * 0.5) - 0.25
 		p[i,3]   = (np.random.rand(1) * 0.5) - 0.25
 		p[i,4]   = (np.random.rand(1) * 0.5) - 0.25
-		p[i,K]   = optimise(p[i,:K], initial_model, params, P_KH, HS)
+		p[i,K]   = compute_energy(p[i,:K], initial_model, params, P_KH, N_KH, HS)
 		v[i,0]   = (np.random.rand(1) * 5.) - 2.5
 		v[i,1]   = (np.random.rand(1) * 5.) - 2.5
 		v[i,2]   = (np.random.rand(1) * 0.25) - 0.125
@@ -307,10 +346,10 @@ def PSO(state, initial_model, params, P_KH, HS):
 	# ## ==== RUN PSO ==== ##
 	for iter in range(MAX_ITER):
 
-		print '------------>', iter, g[K]
+		print '-->', iter, g[K]
 
 		for i in range(M):
-			p[i,K]      = optimise(p[i,:K], initial_model, params, P_KH, HS)
+			p[i,K]      = compute_energy(p[i,:K], initial_model, params, P_KH, N_KH, HS)
 			if p[i,K] > b[i,K]:
 				b[i,:] = np.copy(p[i,:])
 
@@ -322,17 +361,18 @@ def PSO(state, initial_model, params, P_KH, HS):
 		if idx > -1:
 			g = np.copy(p[idx,:])
 
-		optimise(g[:K], initial_model, params, P_KH, HS, display=False)
+		compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS)
 
 		for i in range(M):
 			r1, r2 = np.random.rand(1)[0], np.random.rand(1)[0]
 			v[i] = (omega * np.copy(v[i])) + (c1 * r1 * (np.copy(b[i,:K]) - np.copy(p[i,:K]))) + (c2 * r2 * (np.copy(g[:K]) - np.copy(p[i,:K])))
 			p[i,:K] += np.copy(v[i])
 
+	compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS, display=True)
 
-	optimise(g[:K], initial_model, params, P_KH, HS, display=True)
+	state = np.copy(g[:K])
 
-
+	return state
 
 
 

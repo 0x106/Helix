@@ -180,7 +180,7 @@ class parameters(object):
 	output_dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/output/'
 	dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set1/0008/0002/frame-'
 	suffix = '.jpg'
-	current_frame = 0
+	current_frame = 29
 	file = dir + str(current_frame).zfill(4) + suffix
 	image = cv2.imread(file, cv2.IMREAD_COLOR)
 
@@ -200,6 +200,7 @@ class parameters(object):
 	def __init__(self):
 		self.current_frame = -1
 		self.update()
+		# self.current_frame = 28
 
 	def update(self):
 

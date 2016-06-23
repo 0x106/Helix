@@ -15,29 +15,76 @@ import full_testing
 # activity_recognition.run()
 # activity_recognition.optical_flow_tracking()
 
+def get_KH(model, state, params, HS):
+	model = articulated.wiggle(model, state)
+	points = model.get_points(all_points=True)
+	__N_data, __N_KH = util.descriptors(params, points, HS, True)		
+	model = articulated.wiggle(model, state, inverse=True)
+
+	return __N_KH
+
 def track_articulated():
 
 	params = util.parameters()
 	image, hsv, dt = params.get_frames()
 
-	num_models = 1
+	model = articulated.articulated_model(image.shape)
 
-	model = [articulated.articulated_model(image.shape) for i in range(num_models)]
+	points = model.get_points(all_points=True)
 
-	# model[1].copy(model[0])
+	print len(points)
+	
+	HS = HSIC.HilbertSchmidt(len(points))
+	N_HS = HSIC.HilbertSchmidt(len(points))
 
-	points = [model[i].get_points(all_points=True) for i in range(num_models)]
-	HS = HSIC.HilbertSchmidt(len(points[0]))
+	P_data, P_KH = util.descriptors(params, points, HS, True)		# init KH
 
-	P_data, P_KH = util.descriptors(params, points[0], HS)
+	N_KH = get_KH(model, [0.,0.,-40*0.01, 0.,0.], params, HS)
 
-	init = np.random.rand(5)
+	# --------- positive examples --------- #
+
+	ignore = [0]
+	for i in range(-4, 4):
+		if i not in ignore:
+			N_KH += get_KH(model, [0.,0.,i*0.1,0.,0.], params, HS)
+
+	# --------- negative examples --------- #
+
+	ignore = [-40, -20, -10, 0, 10, 20]
+	for i in range(-40, 40, 10):
+		if i not in ignore:
+			N_KH += get_KH(model, [0.,0.,i*0.1,0.,0.0], params, HS)
+
+	N_KH += get_KH(model, [0.,0.,0.,-0.1,0.], params, HS)
+	N_KH += get_KH(model, [0.,0.,0.,0.1,0.], params, HS)
+	N_KH += get_KH(model, [0.,0.,0.,0.,-0.1], params, HS)
+	N_KH += get_KH(model, [0.,0.,0.,0.,0.1], params, HS)
+
+	# ------------------------------------- #
+
+	state = np.random.rand(5)
 
 	for i in range(50):
 		params.update()
-		articulated.PSO(init, model[0], params, P_KH, HS)
 
-	# optimisation = scipy.optimize.minimize(articulated.optimise, init,
+		state = articulated.PSO(state, model, params, P_KH, N_KH, HS)
+
+		model = articulated.wiggle(model, state)
+
+		P_KH += get_KH(model, [0.,0.,0.,0.,0.], params, HS)
+		
+		N_KH += get_KH(model, [0.,0.,state[2] - 0.1,0.,0.], params, HS)
+		N_KH += get_KH(model, [0.,0.,state[2] + 0.1,0.,0.], params, HS)
+
+		N_KH += get_KH(model, [0.,0.,state[3] - 0.1,0.,0.], params, HS)
+		N_KH += get_KH(model, [0.,0.,state[3] + 0.1,0.,0.], params, HS)
+
+		N_KH += get_KH(model, [0.,0.,state[4] - 0.1,0.,0.], params, HS)
+		N_KH += get_KH(model, [0.,0.,state[4] + 0.1,0.,0.], params, HS)
+
+
+
+	# optimisation = scipy.optimize.minimize(articulated.optimise, state,
 		# args=(model[0], params, P_KH, HS, True), method='Nelder-Mead', options={'xtol':1e-6, 'disp':False})
 
 	# print optimisation
@@ -46,69 +93,112 @@ def test_articulated_tracking():
 	params = util.parameters()
 	image, hsv, dt = params.get_frames()
 
-	num_models = 1
+	model = articulated.articulated_model(image.shape)
 
-	model = [articulated.articulated_model(image.shape) for i in range(num_models)]
-
-	# model[1].copy(model[0])
-
-	points = [model[i].get_points(all_points=True) for i in range(num_models)]
+	points = model.get_points(all_points=True)
+	print len(points)
 	
-	# init_model = articulated.articulated_model(image.shape, 100)
-	# init_points = init_model.get_points(all_points=True)
+	HS = HSIC.HilbertSchmidt(len(points))
+	N_HS = HSIC.HilbertSchmidt(len(points))
 
-	HS = HSIC.HilbertSchmidt(len(points[0]))
-	# __P_data, __P_KH = util.descriptors(params, init_points, HS, True)	# init Cov
-	P_data, P_KH = util.descriptors(params, points[0], HS, True)		# init KH
+	P_data, P_KH = util.descriptors(params, points, HS, True)		# init KH
 
-	print P_KH[:5,:5]
+	# points = model.get_points()
+	# for i in range(len(points)):
+	# 	cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
+	# for i in range(len(points)-1):
+	# 	if i != 3:
+	# 		cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
+	# cv2.imshow("Neptune - Image", image)
+	# cv2.waitKey(0)
 
-	results = [np.zeros(100) for i in range(num_models)]
+	# return
+
+	state = [0.,0.,-40*0.01, 0.,0.]
+	model = articulated.wiggle(model, state)
+	points = model.get_points(all_points=True)
+	N_data, N_KH = util.descriptors(params, points, HS, True)		
+	model = articulated.wiggle(model, state, inverse=True)
+
+	# --------- positive examples --------- #
+
+	for i in range(-4, 4):
+
+		ignore = [0]
+
+		if i not in ignore:
+
+			state = [0.,0.,i*0.01, 0.,0.]
+			model = articulated.wiggle(model, state)
+			points = model.get_points(all_points=True)
+			__P_data, __P_KH = util.descriptors(params, points, HS, True)		
+			P_KH += __P_KH
+			model = articulated.wiggle(model, state, inverse=True)
+
+	# --------- negative examples --------- #
+
+	for i in range(-40, 40, 10):
+
+		ignore = [-40, -20, -10, 0, 10, 20]
+
+		if i not in ignore:
+
+			state = [0.,0.,i*0.01, 0.,0.]
+			model = articulated.wiggle(model, state)
+			points = model.get_points(all_points=True)
+			__N_data, __N_KH = util.descriptors(params, points, HS, True)		
+			N_KH += __N_KH
+			model = articulated.wiggle(model, state, inverse=True)
+
+	# ------------------------------------- #
+
+	results = [np.zeros(200) for i in range(3)]
 	count = 0
 
 	command = cv2.waitKey(1)
 
-	for i in range(num_models):
-		model[i].rz(-1,1,-50*0.01)
+	model.rz(-1,1,-100*0.01)
+
+	points = model.get_points()
+
+	# for i in range(20):
+	# 	params.update()
 
 	while(command != 'q'):
 		image, hsv, dt = params.get_frames()
 
-		for i in range(num_models):
-			model[i].rz(-1,1,0.01)
+		model.rz(-1,1,0.01)
 
-		points = [model[i].get_points() for i in range(num_models)]
+		points = model.get_points()
 
-		for k in range(num_models):
-			for i in range(len(points[k])):
-				cv2.circle(image,(int(points[k][i][0]),int(points[k][i][1])),2,(0,0,255))
+		for i in range(len(points)):
+			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
 
-			for i in range(len(points[k])-1):
-				if i != 5:
-					cv2.line(image,(int(points[k][i][0]),int(points[k][i][1])),(int(points[k][i+1][0]),int(points[k][i+1][1])),(255,0,0))
+		for i in range(len(points)-1):
+			if i != 3:
+				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
 
-		points = [model[i].get_points(all_points=True) for i in range(num_models)]
+		points = model.get_points(all_points=True)
 
-		for k in range(num_models):
-			for i in range(len(points[k])):
-				cv2.circle(image,(int(points[k][i][0]),int(points[k][i][1])),1,(0,255,0))
+		for i in range(len(points)):
+			cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,255,0))
 
-		data, KH = [],[]
-		for i in range(num_models):
-			__data, __KH = util.descriptors(params, points[i], HS)
-			data.append(__data)
-			KH.append(__KH)
+		__data, __KH = util.descriptors(params, points, HS, True)
 
-			results[i][count] = HS.__HSIC__(P_KH, data[i])
+		results[0][count] = HS.__HS_IC__(P_KH, __KH)
+		results[1][count] = N_HS.__HS_IC__(N_KH, __KH)
+		results[2][count] = results[0][count] - results[1][count] 
 
-		print count, [results[i][count] for i in range(num_models)]
+		print count, [results[i][count] for i in range(3)]
 
 		cv2.imshow("Neptune - Image", image)
 
 		if count == results[i].shape[0]-1:
-			for i in range(num_models):
-				plt.plot(results[i])
+			plt.plot(results[0])
+			plt.plot(results[1])
+			plt.plot(results[2])
 			plt.show()
+			return
 
 		count += 1
 
@@ -119,8 +209,11 @@ def test_articulated_tracking():
 #    Main Control   #
 # ================= #
 
+track_articulated()
+# test_articulated_tracking()
+
 # full_testing.temp_sync()
-full_testing.audio_video()
+# full_testing.audio_video()
 # full_testing.temp_sync_mocap_image()
 # full_testing.magnitude_vs_frequency()
 

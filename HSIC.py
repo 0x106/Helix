@@ -220,6 +220,10 @@ class HilbertSchmidt(object):
 
 		return a, b, c, d#((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
+	def __HS_IC__(self, KH, LH):
+		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
+
+
 	def __HSIC__(self, KH, Y):
 	
 		# if np.sum(Y) == 0:
@@ -265,18 +269,18 @@ class HilbertSchmidt(object):
 		# self.cov = np.cov(data)
 
 		# if data.rows > 1:
-		# 	mean = np.mean(data, 1)
+		mean = np.mean(data, 1)
 	
-		# 	for i in range(data.shape[1]):
-		# 		data[:,i] -= mean
+		for i in range(data.shape[1]):
+			data[:,i] -= mean
 
-		# 	cov = np.dot(data, data.T) / (data.shape[1] - 1)
-		# 	self.cov = np.linalg.inv(cov)
+		cov = np.dot(data, data.T) / (data.shape[1] - 1)
+		self.cov = np.linalg.inv(cov)
 
-		# 	for i in range(data.shape[1]):
-		# 		data[:,i] += mean
+		for i in range(data.shape[1]):
+			data[:,i] += mean
 		# else:
-		self.cov = np.cov(data)
-		print self.cov
+		# self.cov = np.cov(data)
+		# print self.cov
 
 
