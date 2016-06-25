@@ -11,24 +11,110 @@ import scipy.optimize
 
 import full_testing
 
+model_p_file = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/dev/model_positive.npy'
+model_n_file = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/dev/model_negative.npy'
+
 # obj.run()
 # activity_recognition.run()
 # activity_recognition.optical_flow_tracking()
 
+def load_model():
+	return np.load(model_p_file), np.load(model_n_file)
+
+def train(dims):
+	params = util.parameters()
+	image, hsv, dt = params.get_frames()
+
+	model = articulated.articulated_model(image.shape)
+
+	points = model.get_points(all_points=True)
+	
+	HS = HSIC.HilbertSchmidt(len(points))
+
+	state = [0. for i in range(dims)]
+	P_KH = get_KH(model, state, params, HS)
+
+	state[2] = -40 * 0.01
+	N_KH = get_KH(model, state, params, HS)
+
+	print 'Training model...'
+
+	# --------- train --------- #
+	k = 2
+	for i in range(-40, 40,2):
+		if i < -6 or i > 6:
+			state = [0. for idx in range(dims)]
+			state[2] = i * 0.01
+			N_KH += get_KH(model, state, params, HS)
+		else:#if i >= -6 or i <= 6:
+			for k in range(dims):
+				state = [0. for idx in range(dims)]
+				state[k] = i * 0.01
+				P_KH += get_KH(model, state, params, HS)
+	# ------------------------------------- #
+
+	np.save(model_p_file, P_KH)
+	np.save(model_n_file, N_KH)
+
+def track():
+	params = util.parameters()
+	image, hsv, dt = params.get_frames()
+
+	model = articulated.articulated_model(image.shape)
+
+	points = model.get_points(all_points=True)
+	
+	HS = HSIC.HilbertSchmidt(len(points))
+
+	dims = 9
+
+	state = [0. for i in range(dims)]
+	P_KH = get_KH(model, state, params, HS)
+
+	state[2] = -40 * 0.01
+	N_KH = get_KH(model, state, params, HS)
+
+	print 'Training model...'
+
+	# --------- train --------- #
+	k = 2
+	for i in range(-40, 40,2):
+		if i >= -5 or i <= 5:
+			for k in range(2, dims):
+				state = [0. for idx in range(dims)]
+				state[k] = i * 0.01
+				P_KH += get_KH(model, state, params, HS)
+	# ------------------------------------- #
+
+	state = [0.0 for i in range(dims)]
+
+	for i in range(10):
+		params.update()
+
+	for i in range(50):
+		params.update()
+
+		print 'Initial state:', state
+
+		optimisation = scipy.optimize.minimize(articulated.compute_energy, state, 
+			args=(model, params, P_KH, N_KH, HS, True), method='Nelder-Mead')
+
+		print 'output:', optimisation.x
+
+		state = optimisation.x
+		state += [((np.random.rand() * 0.1) - 0.05) for i in range(dims)]
+
 def get_KH(model, state, params, HS):
 	model = articulated.wiggle(model, state)
 	points = model.get_points(all_points=True)
-	__N_data, __N_KH = util.descriptors(params, points, HS, True)		
+	data, KH = util.descriptors(params, points, HS, True)		
 	model = articulated.wiggle(model, state, inverse=True)
-
-	return __N_KH
+	return KH
 
 def track_articulated():
 
 	params = util.parameters()
 	image, hsv, dt = params.get_frames()
-
-	model = articulated.articulated_model(image.shape)
 
 	points = model.get_points(all_points=True)
 
@@ -96,61 +182,86 @@ def test_articulated_tracking():
 	model = articulated.articulated_model(image.shape)
 
 	points = model.get_points(all_points=True)
-	partials = [model.get_partial_points(0), model.get_partial_points(1)]
-	print len(points)
 	
 	HS = HSIC.HilbertSchmidt(len(points))
-	partial_HS = HSIC.HilbertSchmidt(len(partials[0]))
 
-	P_data, P_KH = util.descriptors(params, points, HS, True)
+	dims = 9
 
-	left_data, left_KH = util.descriptors(params, partials[0], partial_HS, True) 
-	right_data, right_KH = util.descriptors(params, partials[1], partial_HS, True) 
+	# train(dims)
+	# return
 
-	N_KH = get_KH(model, [0.,0.,-40*0.01, 0.,0.], params, HS)
+	if False:
+		state = [0. for i in range(dims)]
+		P_KH = get_KH(model, state, params, HS)
 
-	# --------- positive examples --------- #
-	for i in range(-4, 4):
-		ignore = [0]
-		if i not in ignore:
-			P_KH += get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
-	# ------------------------------------- #
+		state[2] = -40 * 0.01
+		N_KH = get_KH(model, state, params, HS)
 
-	# --------- negative examples --------- #
-	for i in range(-40, 40, 10):
-		ignore = [-40, -20, -10, 0, 10, 20]
-		if i not in ignore:
-			N_KH += get_KH(model, [0.,0.,i*0.01, 0.,0.], params, HS)
-	# ------------------------------------- #
+		print 'Training model...'
 
-	results = [np.zeros(200) for i in range(5)]
+		# --------- train --------- #
+		k = 2
+		for i in range(-40, 40,2):
+			if i < -6 or i > 6:
+				state = [0. for idx in range(dims)]
+				state[2] = i * 0.01
+				N_KH += get_KH(model, state, params, HS)
+			else:#if i >= -6 or i <= 6:
+				for k in range(dims):
+					state = [0. for idx in range(dims)]
+					state[k] = i * 0.01
+					P_KH += get_KH(model, state, params, HS)
+		# ------------------------------------- #
+	else:
+		P_KH, N_KH = load_model()
+
+	results = [np.zeros(100) for i in range(5)]
 	count = 0
 
+	# points = model.get_points()
 
-	points = model.get_points()
-	for i in range(len(points)):
-		cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255),-1)
+	# for i in range(len(points)):
+	# 	cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255),-1)
 
-	for i in range(len(points)-1):
-		if i != 3:
-			cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0),2)
+	# for i in range(len(points)-1):
+	# 	if i != 3 and i != 7:
+	# 		cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
 
-	cv2.imshow("Neptune - Image", image)
-	command = cv2.waitKey(0)
+	# cv2.imshow("Neptune - Image", image)
+
+	# command = cv2.waitKey(0)
+
+	# return
+
+	state = [((np.random.rand() * 0.2) - 0.1) for i in range(dims)]
+	# state = [0. for i in range(dims)]
+	state[0] = 0.
+	state[1] = 0.
+
+	# state = np.random.rand() * 0.2 - 0.1
+
+	# print 'Initial state:', state
+
+	# for i in range(50):
+	# 	params.update()
+
+	# 	state = articulated.PSO(state, model, params, P_KH, N_KH, HS)
+
+	# 	P_KH += get_KH(model, [0. for i in range(dims)], params, HS)
+
+	optimisation = scipy.optimize.minimize(articulated.compute_energy, state, 
+		args=(model, params, P_KH, N_KH, HS, True), method='Nelder-Mead')
+
+	print optimisation.x
 
 	return
 
-	model.rz(-1,1,-100*0.01)
+	command = cv2.waitKey(1)
 
-	# for i in range(20):
-	# 	params.update()
-
-	# params.apply_noise()
-
-
-
+	# model.rz(1,3,0.4)
+	model.rz(-1,1,-50*0.01)
 	while(command != 'q'):
-		params.apply_noise()
+		# params.apply_noise()
 		image, hsv, dt = params.get_frames()
 
 		model.rz(-1,1,0.01)
@@ -162,12 +273,12 @@ def test_articulated_tracking():
 
 		for i in range(len(points)-1):
 			if i != 3:
-				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0),2)
+				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
 
 		points = model.get_points(all_points=True)
 
 		for i in range(len(points)):
-			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,255,0),-1)
+			cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,255,0),-1)
 
 		__data, __KH = util.descriptors(params, points, HS, True)
 
@@ -175,27 +286,17 @@ def test_articulated_tracking():
 		results[1][count] =	HS.__HS_IC__(N_KH, __KH)
 		results[2][count] = results[0][count] - results[1][count]
 
-
-		# partials = [model.get_partial_points(0), model.get_partial_points(1)]
-		# left_data, __left_KH = util.descriptors(params, partials[0], partial_HS, True) 
-		# right_data, __right_KH = util.descriptors(params, partials[1], partial_HS, True)
-
-		# results[3][count] = partial_HS.__HS_IC__(left_KH, __left_KH)
-		# results[4][count] =	partial_HS.__HS_IC__(right_KH, __right_KH)
-
 		print count, [results[i][count] for i in range(3)]
 
 		cv2.imshow("Neptune - Image", image)
 
-		cv2.imwrite('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/pose_results/'+str(count)+'.png', image)
+		# cv2.imwrite('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/pose_results/'+str(count)+'.png', image)
 
 
 		if count == results[i].shape[0]-1:
 			plt.plot(results[0])
 			plt.plot(results[1])
 			plt.plot(results[2])
-			# plt.plot(results[3])
-			# plt.plot(results[4])
 			plt.show()
 			return
 
@@ -208,10 +309,16 @@ def test_articulated_tracking():
 #    Main Control   #
 # ================= #
 
-print 'Modelling occlusions'
+# A = np.random.rand(100,100)
+# B = np.random.rand(100,100)
+
+# for i in range(1000):
+# 	res = np.trace(np.dot(A,B))
+# 	# res = np.dot(np.ravel(A), np.ravel(B))
 
 # track_articulated()
 test_articulated_tracking()
+# track()
 
 # full_testing.temp_sync()
 # full_testing.audio_video()
@@ -300,3 +407,5 @@ test_articulated_tracking()
 
 
 
+
+# 

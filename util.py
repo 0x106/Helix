@@ -179,6 +179,7 @@ import HSIC
 class parameters(object):
 	output_dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/output/'
 	dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set1/0008/0002/frame-'
+	# dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set3/0004/0012/frame-'
 	suffix = '.jpg'
 	current_frame = 29
 	file = dir + str(current_frame).zfill(4) + suffix
@@ -232,17 +233,17 @@ class parameters(object):
 		self.current_frame -= 1
 		self.update()
 
-		num = 40000
+		# num = 40000
 
-		x = [(np.random.rand(num)*self.image.shape[0]).astype(int)]
-		y = [(np.random.rand(num)*self.image.shape[1]).astype(int)]
-		r1 = [np.random.rand(3) * 1000. for i in range(num)]
-		r2 = [np.random.rand(3) * 1000. for i in range(num)]
-		r3 = [np.random.rand() * 1000. for i in range(num)]
+		# x = [(np.random.rand(num)*self.image.shape[0]).astype(int)]
+		# y = [(np.random.rand(num)*self.image.shape[1]).astype(int)]
+		# r1 = [np.random.rand(3) * 1000. for i in range(num)]
+		# r2 = [np.random.rand(3) * 1000. for i in range(num)]
+		# r3 = [np.random.rand() * 1000. for i in range(num)]
 
-		self.image[x, y, :] = r1 	#np.random.rand(3) * 1000.
-		self.hsv[x, y, :] 	= r2 	#np.random.rand(3) * 1000.
-		self.dt[x, y] 		= r3 	#np.random.rand() * 1000.
+		# self.image[x, y, :] = r1 	#np.random.rand(3) * 1000.
+		# self.hsv[x, y, :] 	= r2 	#np.random.rand(3) * 1000.
+		# self.dt[x, y] 		= r3 	#np.random.rand() * 1000.
 
 		x = 90
 		y = 80
@@ -265,27 +266,50 @@ def descriptors(params, points, HS, init=False):
 
 	image_, hsv_, dt_ = params.get_frames()
 
+	# for p in points:
+	# 	if (p[0] < 0) or (p[1] < 0) or (p[0] >= image_.shape[1]-10) or (p[1] >= image_.shape[0]-10):
+	# 		data[:,:] = 0
+	# 		return data, KH
+	# 	if p[0] >= image_.shape[1]-10:
+	# 		data[:,:] = 0
+	# 		return data, KH
+	# 	if p[1] >= image_.shape[0]-10:
+	# 		data[:,:] = 0
+	# 		return data, KH
+
+	idx = 0
 	for p in points:
-		if (p[0] < 0) or (p[1] < 0) or (p[0] >= image_.shape[1]-10) or (p[1] >= image_.shape[0]-10):
-			data[:,:] = 0
-			return data, KH
-		if p[0] >= image_.shape[1]-10:
-			data[:,:] = 0
-			return data, KH
-		if p[1] >= image_.shape[0]-10:
-			data[:,:] = 0
-			return data, KH
+		if ((p[0] < 0) or (p[1] < 0)
+			or (p[0] >= image_.shape[1]-10) 
+				or (p[1] >= image_.shape[0]-10)
+					or (p[0] >= image_.shape[1]-10)
+						or (p[1] >= image_.shape[0]-10)):
+							data[:6,idx] = np.random.rand() * 255
+							data[6,idx] = np.random.rand() * 20.
+		else:
+			data[0,idx] = hsv_[points[idx][1],points[idx][0],0]
+			data[1,idx] = hsv_[points[idx][1],points[idx][0],1]
+			data[2,idx] = hsv_[points[idx][1],points[idx][0],2]
 
-	for i in range(HS.get_N()):
-		data[0,i] = hsv_[points[i][1],points[i][0],0]
-		data[1,i] = hsv_[points[i][1],points[i][0],1]
-		data[2,i] = hsv_[points[i][1],points[i][0],2]
+			data[3,idx] = image_[points[idx][1],points[idx][0],0]
+			data[4,idx] = image_[points[idx][1],points[idx][0],1]
+			data[5,idx] = image_[points[idx][1],points[idx][0],2]
 
-		data[3,i] = image_[points[i][1],points[i][0],0]
-		data[4,i] = image_[points[i][1],points[i][0],1]
-		data[5,i] = image_[points[i][1],points[i][0],2]
+			data[6,idx] = dt_[points[idx][1],points[idx][0]]
+		idx += 1
 
-		data[6,i] = dt_[points[i][1],points[i][0]]
+
+	# for i in range(HS.get_N()):
+
+	# 	data[0,i] = hsv_[points[i][1],points[i][0],0]
+	# 	data[1,i] = hsv_[points[i][1],points[i][0],1]
+	# 	data[2,i] = hsv_[points[i][1],points[i][0],2]
+
+	# 	data[3,i] = image_[points[i][1],points[i][0],0]
+	# 	data[4,i] = image_[points[i][1],points[i][0],1]
+	# 	data[5,i] = image_[points[i][1],points[i][0],2]
+
+	# 	data[6,i] = dt_[points[i][1],points[i][0]]
 
 
 	if init:

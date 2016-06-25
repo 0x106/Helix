@@ -10,11 +10,10 @@ class joint(object):
 	R 		= np.eye(4)
 	T 		= np.eye(4)
 
-	N = 40
-	radius = 110
+	radius = 80#110
 	points = []
 
-	def __init__(self, _N=14):
+	def __init__(self, _N=20):
 
 		self.N = _N
 
@@ -22,13 +21,34 @@ class joint(object):
 
 		self.points = [np.eye(4) for i in range(self.N)]
 
-		count = 0
-		while count < self.N:
-			pt = (np.random.rand(2) * 2. * self.radius) - self.radius
-			if np.linalg.norm(pt) < self.radius:
-				self.points[count][0,3] = pt[0]
-				self.points[count][1,3] = pt[1]
-				count += 1
+		rings = 3
+
+		ang = 6.28 / float(self.N/float(rings))
+		idx = 0
+		for i in range(self.N/rings):
+
+			for k in range(rings):
+
+				self.points[idx+k][0,3] = self.radius/float(k+1) * np.cos(i*ang)
+				self.points[idx+k][1,3] = self.radius/float(k+1) * np.sin(i*ang)
+
+			idx += rings
+
+			# idx += 1
+
+			# self.points[idx][0,3] = self.radius * np.cos(i*ang)
+			# self.points[idx][1,3] = self.radius * np.sin(i*ang)
+
+			# idx += 1
+
+
+		# count = 0
+		# while count < self.N:
+		# 	pt = (np.random.rand(2) * 2. * self.radius) - self.radius
+		# 	if np.linalg.norm(pt) < self.radius:
+		# 		self.points[count][0,3] = pt[0]
+		# 		self.points[count][1,3] = pt[1]
+		# 		count += 1
 
 	def copy(self, src):
 		self.N = src.get_num_points()
@@ -73,7 +93,7 @@ class joint(object):
 class articulated_model(object):
 
 	# general parameters
-	num_legs = 2	
+	num_legs = 2
 	num_joints = 5
 
 	legs = [[]]
@@ -88,7 +108,9 @@ class articulated_model(object):
 			for j in range(self.num_joints):
 				self.legs[l][j].copy(src.get_legs()[l][j])
 	
-	def __init__(self, shape, _N=14):
+	def __init__(self, shape, _N=20, _write=False):
+
+		self.N = _N
 
 		# initialise camera matrix
 		self.M[0,2] = shape[1]/2.
@@ -100,23 +122,89 @@ class articulated_model(object):
 		# self.legs = [[] for i in range(self.num_legs)]
 		self.legs = [[joint(_N) for i in range(self.num_joints)] for i in range(self.num_legs)]
 
-		for i in range(self.num_legs):
-			self.tz(i,1, 1000.)
-			self.tx(i,1,-250.)
-			self.ty(i,1,250.)
-			
-			for k in range(2, self.num_joints):
-				self.tx(i, k, self.segment_length)	
-				self.tx(i, k, self.segment_length)
+		data = 1
 
-		# self.rz(0,1, - 0.8)
-		self.rz(0,1, - 0.9)
-		self.rz(0,2, - 0.4)
-		self.rz(0,3, - 0.2)
+		if data == 1:
+			for i in range(self.num_legs):
+				self.tz(i,1, 1000.)
+				self.tx(i,1,-250.)
+				self.ty(i,1,250.)
+			
+				for k in range(2, self.num_joints):
+					self.tx(i, k, self.segment_length)	
+					self.tx(i, k, self.segment_length)
+
+			# self.rz(0,1, - 0.8)
+			self.rz(0,1, - 0.9)
+			self.rz(0,2, - 0.4)
+			self.rz(0,3, - 0.2)
 		
-		self.rz(1,1, - 2.06)
-		self.rz(1,2, 0.2)
-		self.rz(1,3, 0.05)
+			self.rz(1,1, - 2.06)
+			self.rz(1,2, 0.2)
+			self.rz(1,3, 0.05)
+
+		elif data == 2:
+			for i in range(self.num_legs):
+				self.tz(i,1, 1000.)
+				self.tx(i,1,-60.)
+				self.ty(i,1,380.)
+			
+				for k in range(2, self.num_joints):
+					self.tx(i, k, self.segment_length)	
+					self.tx(i, k, self.segment_length)
+
+			self.rz(-1,1,0.14)
+
+			# self.rz(0,1, - 0.8)
+			self.rz(0,1, - 0.9)
+			self.rz(0,2, - 0.4)
+			self.rz(0,3, - 0.2)
+		
+			self.rz(1,1, - 2.06)
+			self.rz(1,2, 0.2)
+			self.rz(1,3, 0.1)
+
+		elif data == 3:
+			for i in range(self.num_legs):
+				self.tz(i,1, 1000.)
+				self.tx(i,1,-400.)
+				self.ty(i,1,300.)
+			
+				for k in range(2, self.num_joints):
+					self.tx(i, k, self.segment_length)	
+					self.tx(i, k, self.segment_length)
+
+			# self.rz(-1,1,0.14)
+
+			self.rz(0,1, - 0.6)
+			self.rz(0,2, - 0.4)
+			self.rz(0,3, - 0.3)
+		
+			# 3rd finger
+			self.rz(2,1,-1.2)
+			self.rz(2,2,-.3)
+
+			# 4th finger
+			self.rz(3,1,-2.)
+			self.rz(3,1,0.2)
+
+			# 5th finger
+			self.rz(1,1, - 2.7)
+			self.rz(1,2, 0.8)
+			self.rz(1,3, -0.06)
+
+		else:
+			print 'error'
+			while(True):
+				pass
+
+		if _write:
+
+			output_file = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/dev/model.txt'
+			for i in range(self.num_legs):
+				for k in range(self.num_joints):
+					for j in range(self.N):
+						print self.legs[i][k].get_points()[j]
 
 	def get_legs(self):
 		return self.legs
@@ -266,12 +354,33 @@ def wiggle(model, w, inverse=False):
 	if inverse:
 		w = [w[i] * -1 for i in range(len(w))]
 
-	model.tx(-1,1,w[0])
-	model.tx(-1,1,w[1])
-	model.rz(-1,1,w[2])
+	if len(w) == 2:
+		model.rz(1,3,w[0])
+		model.rz(0,3,w[1])
 
-	model.rz(0,1,w[3])
-	model.rz(1,1,w[4])
+	else:
+	# global translation
+		model.tx(-1,1,w[0])
+		model.ty(-1,1,w[1])
+
+	# global rotation
+		model.rz(-1,1,w[2])
+
+	# leg rotation
+		model.rz(0,1,w[3])
+		model.rz(1,1,w[4])
+
+	# leg / j1 rotation
+		model.rz(0,2,w[5])
+		model.rz(1,2,w[6])
+		# model.rz(2,2,w[7])
+		# model.rz(3,2,w[8])
+
+	# leg / j2 rotation
+		model.rz(0,3,w[7])
+		model.rz(1,3,w[8])
+		# model.rz(2,3,w[11])
+		# model.rz(3,3,w[12])
 
 	# idx = 0
 
@@ -293,11 +402,11 @@ def wiggle(model, w, inverse=False):
 
 	return model
 
-def compute_energy(state, initial_model, params, P_KH, N_KH, HS, display=False):
+def compute_energy(state, model, params, P_KH, N_KH, HS, display=False):
 	image, hsv, dt = params.get_frames()
-	model = articulated_model(image.shape)
+	# model = articulated_model(image.shape)
 
-	model.copy(initial_model)
+	# model.copy(initial_model)
 
 	model = wiggle(model, state)
 	
@@ -310,12 +419,19 @@ def compute_energy(state, initial_model, params, P_KH, N_KH, HS, display=False):
 			if i != 3:
 				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
 		
+		# points = initial_model.get_points()
+		# for i in range(len(points)):
+		# 	cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(255,0,255))
+		# for i in range(len(points)-1):
+		# 	if i != 3:
+		# 		cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(0,0,255))
+		
+
 		points = model.get_points(all_points=True)
 		for i in range(len(points)):
 			cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,255,0))
 
 		__dir, __counter, __current_frame, __suffix = params.get_filename() 
-
 
 		cv2.imwrite(__dir + str(__counter) + '__' + str(__current_frame) + __suffix, image)
 
@@ -333,45 +449,33 @@ def compute_energy(state, initial_model, params, P_KH, N_KH, HS, display=False):
 
 	result = positive - negative
 
+	model = wiggle(model, state, inverse=True)
+
 	# print state, result
 
 	return result
 
 def PSO(state, initial_model, params, P_KH, N_KH, HS):
 
-	M = 100        # number of particles
+	M = 27        # number of particles
 	K = len(state) 	      # num parameters to define functions
 
 	c1, c2, omega       = 1.49618, 1.49618, 0.7298
 	p, v = np.zeros((M, K+1)), np.zeros((M, K))
 	b, g = np.zeros((M, K+1)), np.zeros(K+1)
 
-	MAX_ITER = 2
+	MAX_ITER = 5
 
 	results = []
 
-	p[0,:] = 0.
-	v[0,0]   = (np.random.rand(1) * 5.) - 2.5
-	v[0,1]   = (np.random.rand(1) * 5.) - 2.5
-	v[0,2]   = (np.random.rand(1) * 0.25) - 0.125
-	v[0,3]   = (np.random.rand(1) * 0.25) - 0.125
-	v[0,4]   = (np.random.rand(1) * 0.25) - 0.125
+	p[0,:K] = state
 	p[0,K] = compute_energy(p[0,:K], initial_model, params, P_KH, N_KH, HS)
 
-	print p[0,:]
-
 	for i in range(1, M):	
-		p[i,0]   = (np.random.rand(1) * 10.) - 5.
-		p[i,1]   = (np.random.rand(1) * 10.) - 5.
-		p[i,2]   = (np.random.rand(1) * 0.5) - 0.25
-		p[i,3]   = (np.random.rand(1) * 0.5) - 0.25
-		p[i,4]   = (np.random.rand(1) * 0.5) - 0.25
+		
+		p[i,:K] = state + ((np.random.rand(K) * 0.25) - 0.125)
+		v[i,:]  = ((np.random.rand(K) * 0.125) - 0.0625)
 		p[i,K]   = compute_energy(p[i,:K], initial_model, params, P_KH, N_KH, HS)
-		v[i,0]   = (np.random.rand(1) * 5.) - 2.5
-		v[i,1]   = (np.random.rand(1) * 5.) - 2.5
-		v[i,2]   = (np.random.rand(1) * 0.25) - 0.125
-		v[i,3]   = (np.random.rand(1) * 0.25) - 0.125
-		v[i,4]   = (np.random.rand(1) * 0.25) - 0.125
 		b[i] = np.copy(p[i])
 
  #    # find the global opt
@@ -399,7 +503,7 @@ def PSO(state, initial_model, params, P_KH, N_KH, HS):
 		if idx > -1:
 			g = np.copy(p[idx,:])
 
-		compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS)
+		compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS, display=True)
 
 		for i in range(M):
 			r1, r2 = np.random.rand(1)[0], np.random.rand(1)[0]

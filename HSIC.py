@@ -147,6 +147,9 @@ class HilbertSchmidt(object):
 			self.S = np.eye(_K) * (1./((_K*10000)))
 			self.S[6,6] = (1./((_K*20)))
 
+
+		self.indexes = [i for i in range(self.N)]
+
 	def AR_get_KH(self, X):
 		if np.sum(X) == 0:
 			return 0.
@@ -220,7 +223,21 @@ class HilbertSchmidt(object):
 
 		return a, b, c, d#((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
+	def sim(A,B):
+		return np.dot(np.ravel(A),np.ravel(B))
+
 	def __HS_IC__(self, KH, LH):
+		# _KH_ = np.ravel(KH)
+		# _LH_ = np.ravel(LH)
+
+		# scale = (1. / (self.N*self.N))
+		
+		# A = scale * np.dot(_KH_, _LH_)
+		# B = scale * np.dot(_KH_, _KH_)
+		# C = scale * np.dot(_LH_, _LH_)
+
+		# return A / np.sqrt(B * C)
+
 		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
 
@@ -241,11 +258,6 @@ class HilbertSchmidt(object):
 
 	def rbf(self, x, y, type=0):
 		z = x-y
-		# if type == 1:
-		# 	q = np.dot(z.T, np.dot(self.cov1,z))
-		# elif type == 2:
-		# 	q = np.dot(z.T, np.dot(self.cov2,z))
-		# else:
 		q = np.dot(z.T, np.dot(self.cov,z))
 		return np.exp(-q)
 
