@@ -178,8 +178,8 @@ import HSIC
 
 class parameters(object):
 	output_dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/output/'
-	dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set1/0008/0002/frame-'
-	# dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set3/0004/0012/frame-'
+	# dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set1/0008/0003/frame-'
+	dir = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/set3/0004/0012/frame-'
 	suffix = '.jpg'
 	current_frame = 29
 	file = dir + str(current_frame).zfill(4) + suffix
@@ -192,7 +192,7 @@ class parameters(object):
 	dt = np.zeros((h,w,1))
 	hsv = np.zeros((h,w,3))
 
-	counter = 15
+	counter = -1
 
 	noise_counter = 0
 
@@ -259,7 +259,7 @@ class parameters(object):
 		# cv2.imwrite('/Users/jordancampbell/Desktop/Helix/code/pyNeptune/data/CHG/pose_results/'+str(self.noise_counter)+'.png', self.image)
 		self.noise_counter += 1
 
-def descriptors(params, points, HS, init=False):
+def descriptors(params, points, HS, init=True):
 
 	data = np.zeros((HS.get_K(), len(points)))
 	KH = np.zeros((HS.get_N(),HS.get_N()))
@@ -284,7 +284,7 @@ def descriptors(params, points, HS, init=False):
 				or (p[1] >= image_.shape[0]-10)
 					or (p[0] >= image_.shape[1]-10)
 						or (p[1] >= image_.shape[0]-10)):
-							data[:6,idx] = np.random.rand() * 255
+							data[:6,idx] = np.random.rand(6) * 255
 							data[6,idx] = np.random.rand() * 20.
 		else:
 			data[0,idx] = hsv_[points[idx][1],points[idx][0],0]
@@ -315,10 +315,16 @@ def descriptors(params, points, HS, init=False):
 	if init:
 		HS.set_covariance(data)
 
+	cov = HS.get_cov()
+
 	# else:
 	for i in range(HS.get_N()):
-		for k in range(HS.get_N()):
-			KH[i,k] = HS.rbf(data[:,i], data[:,k])
+
+		KH[i,:] = np.exp(-np.sum((data[:,i] - data.T)*((np.dot(cov, (data[:,i] - data.T).T).T).T).T, axis=1))
+
+		# for k in range(HS.get_N()):
+		# 	# KH[i,k] = HS.rbf(data[:,i], data[:,k])
+		# 	KH[i,k] = np.exp(-(np.dot((data[:,i]-data[:,k]).T, np.dot(cov,(data[:,i]-data[:,k])))))
 
 	KH = np.dot(KH,HS.get_H())
 

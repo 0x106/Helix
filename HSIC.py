@@ -227,18 +227,19 @@ class HilbertSchmidt(object):
 		return np.dot(np.ravel(A),np.ravel(B))
 
 	def __HS_IC__(self, KH, LH):
-		# _KH_ = np.ravel(KH)
-		# _LH_ = np.ravel(LH)
+		_KH_ = np.ravel(KH)
+		_LH_ = np.ravel(LH)
 
 		# scale = (1. / (self.N*self.N))
+		scale = 1. / self.N
 		
-		# A = scale * np.dot(_KH_, _LH_)
-		# B = scale * np.dot(_KH_, _KH_)
-		# C = scale * np.dot(_LH_, _LH_)
+		A = scale * np.dot(_KH_, _LH_)
+		B = scale * np.dot(_KH_, _KH_)
+		C = scale * np.dot(_LH_, _LH_)
 
-		# return A / np.sqrt(B * C)
+		return A / np.sqrt(B * C)
 
-		return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
+		# return ((1. / (self.N*self.N)) * np.trace(np.dot(KH,LH))) / np.sqrt(((1. / (self.N*self.N)) * np.trace(np.dot(KH,KH)))*((1. / (self.N*self.N)) * np.trace(np.dot(LH,LH))))
 
 
 	def __HSIC__(self, KH, Y):
@@ -275,6 +276,8 @@ class HilbertSchmidt(object):
 	def get_K(self):
 		return self.K
 
+	def get_cov(self):
+		return self.cov
 
 	def set_covariance(self,data, type=0):
 
@@ -287,7 +290,11 @@ class HilbertSchmidt(object):
 			data[:,i] -= mean
 
 		cov = np.dot(data, data.T) / (data.shape[1] - 1)
-		self.cov = np.linalg.inv(cov)
+
+		try:
+			self.cov = np.linalg.inv(cov)
+		except:
+			pass
 
 		for i in range(data.shape[1]):
 			data[:,i] += mean

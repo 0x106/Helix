@@ -10,7 +10,7 @@ class joint(object):
 	R 		= np.eye(4)
 	T 		= np.eye(4)
 
-	radius = 80#110
+	radius = 90#80#110
 	points = []
 
 	def __init__(self, _N=20):
@@ -93,7 +93,7 @@ class joint(object):
 class articulated_model(object):
 
 	# general parameters
-	num_legs = 2
+	num_legs = 4
 	num_joints = 5
 
 	legs = [[]]
@@ -108,7 +108,7 @@ class articulated_model(object):
 			for j in range(self.num_joints):
 				self.legs[l][j].copy(src.get_legs()[l][j])
 	
-	def __init__(self, shape, _N=20, _write=False):
+	def __init__(self, shape, _N=40, _write=False):
 
 		self.N = _N
 
@@ -122,7 +122,7 @@ class articulated_model(object):
 		# self.legs = [[] for i in range(self.num_legs)]
 		self.legs = [[joint(_N) for i in range(self.num_joints)] for i in range(self.num_legs)]
 
-		data = 1
+		data = 3
 
 		if data == 1:
 			for i in range(self.num_legs):
@@ -373,14 +373,14 @@ def wiggle(model, w, inverse=False):
 	# leg / j1 rotation
 		model.rz(0,2,w[5])
 		model.rz(1,2,w[6])
-		# model.rz(2,2,w[7])
-		# model.rz(3,2,w[8])
+		model.rz(2,2,w[7])
+		model.rz(3,2,w[8])
 
 	# leg / j2 rotation
-		model.rz(0,3,w[7])
-		model.rz(1,3,w[8])
-		# model.rz(2,3,w[11])
-		# model.rz(3,3,w[12])
+		model.rz(0,3,w[9])
+		model.rz(1,3,w[10])
+		model.rz(2,3,w[11])
+		model.rz(3,3,w[12])
 
 	# idx = 0
 
@@ -442,7 +442,7 @@ def compute_energy(state, model, params, P_KH, N_KH, HS, display=False):
 
 	## get the points and HS matrix
 	points = model.get_points(all_points=True)
-	data, LH = util.descriptors(params, points, HS)
+	data, LH = util.descriptors(params, points, HS, True)
 
 	positive = HS.__HS_IC__(P_KH, LH)
 	negative = HS.__HS_IC__(N_KH, LH)
@@ -457,14 +457,14 @@ def compute_energy(state, model, params, P_KH, N_KH, HS, display=False):
 
 def PSO(state, initial_model, params, P_KH, N_KH, HS):
 
-	M = 27        # number of particles
+	M = 50        # number of particles
 	K = len(state) 	      # num parameters to define functions
 
 	c1, c2, omega       = 1.49618, 1.49618, 0.7298
 	p, v = np.zeros((M, K+1)), np.zeros((M, K))
 	b, g = np.zeros((M, K+1)), np.zeros(K+1)
 
-	MAX_ITER = 5
+	MAX_ITER = 20
 
 	results = []
 
@@ -473,8 +473,12 @@ def PSO(state, initial_model, params, P_KH, N_KH, HS):
 
 	for i in range(1, M):	
 		
-		p[i,:K] = state + ((np.random.rand(K) * 0.25) - 0.125)
-		v[i,:]  = ((np.random.rand(K) * 0.125) - 0.0625)
+		p[i,:K] = state + ((np.random.rand(K) * 0.2) - 0.1)
+
+		p[i,0] *= 10.
+		p[i,1] *= 10.
+
+		v[i,:]  = ((np.random.rand(K) * 0.1) - 0.05)
 		p[i,K]   = compute_energy(p[i,:K], initial_model, params, P_KH, N_KH, HS)
 		b[i] = np.copy(p[i])
 
@@ -491,7 +495,7 @@ def PSO(state, initial_model, params, P_KH, N_KH, HS):
 		print '-->', iter, g[K]
 
 		for i in range(M):
-			p[i,K]      = compute_energy(p[i,:K], initial_model, params, P_KH, N_KH, HS)
+			p[i,K]      = compute_energy(p[i,:K], initial_model, params, P_KH, N_KH, HS, display=False)
 			if p[i,K] > b[i,K]:
 				b[i,:] = np.copy(p[i,:])
 
@@ -503,7 +507,7 @@ def PSO(state, initial_model, params, P_KH, N_KH, HS):
 		if idx > -1:
 			g = np.copy(p[idx,:])
 
-		compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS, display=True)
+		compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS, display=False)
 
 		for i in range(M):
 			r1, r2 = np.random.rand(1)[0], np.random.rand(1)[0]

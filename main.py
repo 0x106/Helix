@@ -1,4 +1,4 @@
-
+# 
 import cv2
 import util
 import obj
@@ -41,15 +41,15 @@ def train(dims):
 
 	# --------- train --------- #
 	k = 2
-	for i in range(-40, 40,2):
-		if i < -6 or i > 6:
+	for i in range(-80, 80):
+		if i < -14 or i > 14:
 			state = [0. for idx in range(dims)]
-			state[2] = i * 0.01
+			state[2] = i * 0.005
 			N_KH += get_KH(model, state, params, HS)
 		else:#if i >= -6 or i <= 6:
 			for k in range(dims):
 				state = [0. for idx in range(dims)]
-				state[k] = i * 0.01
+				state[k] = i * 0.005
 				P_KH += get_KH(model, state, params, HS)
 	# ------------------------------------- #
 
@@ -185,7 +185,7 @@ def test_articulated_tracking():
 	
 	HS = HSIC.HilbertSchmidt(len(points))
 
-	dims = 9
+	dims = 13
 
 	# train(dims)
 	# return
@@ -215,7 +215,7 @@ def test_articulated_tracking():
 	else:
 		P_KH, N_KH = load_model()
 
-	results = [np.zeros(100) for i in range(5)]
+	results = [np.zeros(200) for i in range(5)]
 	count = 0
 
 	# points = model.get_points()
@@ -234,37 +234,59 @@ def test_articulated_tracking():
 	# return
 
 	state = [((np.random.rand() * 0.2) - 0.1) for i in range(dims)]
-	# state = [0. for i in range(dims)]
-	state[0] = 0.
-	state[1] = 0.
+	# # state = [0. for i in range(dims)]
+	state[0] *= 100.
+	state[1] *= 100.
 
 	# state = np.random.rand() * 0.2 - 0.1
 
-	# print 'Initial state:', state
+	print 'Initial state:', state
 
-	# for i in range(50):
-	# 	params.update()
+	for i in range(50):
+		params.update()
 
-	# 	state = articulated.PSO(state, model, params, P_KH, N_KH, HS)
+		state = articulated.PSO(state, model, params, P_KH, N_KH, HS)
 
-	# 	P_KH += get_KH(model, [0. for i in range(dims)], params, HS)
+		for k in range(2,9):
 
-	optimisation = scipy.optimize.minimize(articulated.compute_energy, state, 
-		args=(model, params, P_KH, N_KH, HS, True), method='Nelder-Mead')
+			P_KH += get_KH(model, [0. for i in range(dims)], params, HS)
 
-	print optimisation.x
+			update = [0. for i in range(dims)]
+			update[k] = 0.01
+			P_KH += get_KH(model, update, params, HS)
 
-	return
+			update = [0. for i in range(dims)]
+			update[k] = -0.01
+			P_KH += get_KH(model, update, params, HS)
+
+		update = [0. for i in range(dims)]
+		update[k] = 0.1
+		N_KH += get_KH(model, update, params, HS)
+
+		update = [0. for i in range(dims)]
+		update[k] = -0.1
+		N_KH += get_KH(model, update, params, HS)
+
+		
+	# optimisation = scipy.optimize.minimize(articulated.compute_energy, state, 
+		# args=(model, params, P_KH, N_KH, HS, True), method='Nelder-Mead')
+# 
+	# print optimisation.x
+
+	# return
 
 	command = cv2.waitKey(1)
 
-	# model.rz(1,3,0.4)
-	model.rz(-1,1,-50*0.01)
+	# params.update()
+
+	# model.rz(1,3,-50*0.01)
+	model.rz(-1,1,-100*0.01)
 	while(command != 'q'):
 		# params.apply_noise()
 		image, hsv, dt = params.get_frames()
 
 		model.rz(-1,1,0.01)
+		# model.rz(1,3,0.01)
 
 		points = model.get_points()
 
