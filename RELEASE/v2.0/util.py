@@ -45,7 +45,8 @@ class parameters(object):
 		self.hsv = cv2.blur(np.copy(self.hsv), (self.blur,self.blur))
 		self.dt = cv2.blur(np.copy(self.dt), (self.blur,self.blur))
 
-	def get_frames(self):
+	def get_frames(self, frame=0):
+		[self.update() for i in range(frame)]
 		return np.copy(self.image), np.copy(self.hsv), np.copy(self.dt), np.copy(self.flow)
 
 
@@ -60,6 +61,7 @@ def descriptors(params, points, prev_points, HS, _train=False, _motion=False):
 	num_out = 0
 
 	idx = 0
+
 	for p in points:
 		if ((p[0] < 0) or (p[1] < 0) or (p[0] >= image_.shape[1]-10) 
 			or (p[1] >= image_.shape[0]-10) or (p[0] >= image_.shape[1]-10) or (p[1] >= image_.shape[0]-10)):
@@ -70,13 +72,11 @@ def descriptors(params, points, prev_points, HS, _train=False, _motion=False):
 			data[ :3, idx] 	= hsv_[points[idx][1],points[idx][0],:]
 			data[3:6, idx] 	= image_[points[idx][1],points[idx][0],:]
 			data[6,idx] 	= dt_[points[idx][1],points[idx][0]]
+			data[7:,idx] 	= flow_[points[idx][1],points[idx][0],:]
 
 			if _motion:
-				if _train:
-					data[7:,idx] = flow_[prev_points[idx][1],prev_points[idx][0],:]
-				else:
-					data[7,idx] = prev_points[idx][0] - points[idx][0]
-					data[8,idx] = prev_points[idx][1] - points[idx][1]
+				data[7,idx] = prev_points[idx][0] - points[idx][0]
+				data[8,idx] = prev_points[idx][1] - points[idx][1]
 
 		idx += 1
 

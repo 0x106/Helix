@@ -12,6 +12,7 @@ model_n_file_training = '/Users/jordancampbell/Desktop/Helix/code/pyNeptune/dev/
 
 # model_p_file = model_p_file_training
 
+
 class joint(object):
 	pt 		= np.zeros(4)
 	pt_H 	= np.zeros(3)
@@ -19,7 +20,9 @@ class joint(object):
 	R 		= np.eye(4)
 	T 		= np.eye(4)
 
-	radius = [40,60,90]
+	# radius = [40,60,90]
+	radius = [10,20,30]
+	# radius = [100,120,160]
 	points = []
 
 	def __init__(self, _N=20):
@@ -95,12 +98,32 @@ class articulated_model(object):
 
 	M = np.eye(3)
 
+	def draw(self, image):
+
+		points = self.get_points()
+
+		for i in range(len(points)):
+			cv2.circle(image,(int(points[i,0]),int(points[i,1])),2,(0,0,255),-1)
+
+		# cv2.circle(image, (points[:,0], points[:,1]), 2, (0,0,255))
+
+		for i in range(len(points)-1):
+			if i != 3 and i != 7 and i != 11:
+				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
+
+		points = self.get_points(all_points=True)
+
+		for i in range(len(points)):
+			cv2.circle(image,(int(points[i,0]),int(points[i,1])),1,(0,255,0),-1)
+
+		return image
+
 	def copy(self, src):
 		for l in range(self.num_legs):
 			for j in range(self.num_joints):
 				self.legs[l][j].copy(src.get_legs()[l][j])
 	
-	def __init__(self, shape, _N=40, _write=False):
+	def __init__(self, shape, _N=10, _write=False):
 
 		self.N = _N
 
@@ -238,6 +261,7 @@ class articulated_model(object):
 		return output
 
 	def get_points(self, all_points=False):
+		w,h = 320,240
 		input = []
 
 		for l in range(self.num_legs):
@@ -267,12 +291,19 @@ class articulated_model(object):
 		T = np.eye(4)
 		T[2,3] = 50
 
-		output = []
+		output = np.zeros((len(input), 2))
 
 		for i in range(len(input)):
 			H = np.dot(self.M, np.dot(np.eye(3,4), np.dot(T, np.dot(R, input[i]))))
-			output.append(H[:2] / H[2])
-
+			output[i,:] = (H[:2] / H[2])
+			if output[i,0] < 0:
+				output[i,0] = 0
+			if output[i,1] < 0:
+				output[i,1] = 0
+			if output[i,0] > w:
+				output[i,0] = w-1
+			if output[i,1] > h:
+				output[i,1] = h-1
 		return output
 
 	def tx(self, _L, _J, _t):
@@ -464,12 +495,12 @@ def train(_dims, model, state, motion=False, update=False):
 	if motion:
 		HS = HSIC.HilbertSchmidt(len(points), 9)
 	else:
-		HS = HSIC.HilbertSchmidt(len(points), 7)
+		HS = HSIC.HilbertSchmidt(len(points), 9)
 	pos = [0. for i in range(_dims)]
 	P_KH = np.zeros((HS.get_N(), HS.get_N()))
 
 	if update:
-		bound = 4
+		bound = 40
 	else:
 		bound = 40
 
@@ -478,12 +509,15 @@ def train(_dims, model, state, motion=False, update=False):
 		if i % 2 == 0:
 			print i, 'of', bound
 
-		__pos = ((np.random.rand(_dims) * 0.125) - 0.0625)
+		if update:
+			__pos = [0. for i in range(_dims)]
+		else:
+			__pos = ((np.random.rand(_dims) * 0.125) - 0.0625)
 
-		for k in range(2, 7):
-			for j in range(-6,6):
+		for k in range(2):
+			for j in range(-4,4):
 				pos = np.copy(__pos)
-				pos[k] += j * 0.005
+				pos[k] += j * 0.0025
 				P_KH += get_KH(model, pos, params, HS, _motion=motion)
 	# ------------------------------------- #
 
@@ -497,8 +531,58 @@ def train(_dims, model, state, motion=False, update=False):
 
 	return P_KH
 
+def flow_cost(state, model, params, P_KH, N_KH, HS, display=False):
+	image, hsv, dt, flow = params.get_frames()
+
+	prev_points = model.get_points(all_points=True)
+	model = wiggle(model, state)
+	points = model.get_points(all_points=True)
+
+	diff = np.zeros((HS.get_N(), 2))
+	motion = np.zeros((HS.get_N(), 2))
+
+	if display:
+	## draw the model for testing
+		points = model.get_points()
+		for i in range(len(points)):
+			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255))
+		for i in range(len(points)-1):
+			if i != 3 and i != 7 and i != 11:
+				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
+
+		__dir, __counter, __current_frame, __suffix = params.get_filename() 
+		cv2.imwrite(__dir + str(__counter) + '__' + str(__current_frame) + __suffix, image)
+
+		cv2.imshow("Neptune - Image", image)
+		cv2.waitKey(1)
+
+	idx = 0
+	for p in points:
+		if ((p[0] < 0) or (p[1] < 0) or (p[0] >= image.shape[1]-10) 
+			or (p[1] >= image.shape[0]-10) or (p[0] >= image.shape[1]-10) or (p[1] >= image.shape[0]-10)):
+					motion[idx, :] = [1000., 1000.]
+		else:
+			motion[idx, :] 	= flow[points[idx][0],points[idx][1],:]
+			diff[idx, :]     = [(prev_points[idx][0] - points[idx][0]),(prev_points[idx][1] - points[idx][1])]
+		idx += 1
+
+	print np.sum(motion - diff)
+
+	model = wiggle(model, state,inverse=True)
+
+	return np.sum(np.abs(motion - diff))
+
+
 def compute_energy(state, model, params, P_KH, N_KH, HS, display=False):
 	image, hsv, dt, flow = params.get_frames()
+
+	dims = 15
+
+	# mean, cov = [np.zeros(dims), np.zeros(dims)],[np.zeros((dims,dims)), np.zeros((dims,dims))]
+
+	points = model.get_points(all_points=True)
+	util.descriptors(params, points, points, HS)
+	# mean[0], cov[0] = HS.get_mean_cov()
 
 	model = wiggle(model, state)
 	
@@ -519,9 +603,12 @@ def compute_energy(state, model, params, P_KH, N_KH, HS, display=False):
 
 	## get the points and HS matrix
 	points = model.get_points(all_points=True)
-	LH = util.descriptors(params, points, points, HS)
+	LH = util.descriptors(params, points, points, HS, _motion=True)
+
+	# mean[1], cov[1] = HS.get_mean_cov()
 
 	result = HS.HSIC(P_KH, LH)# - HS.HSIC(N_KH, LH)
+	# result = 0.5 * (np.dot((mean[1] - mean[0]), np.dot(np.linalg.inv(cov[1]), (mean[1] - mean[0]).T)) + np.dot((mean[1] - mean[0]), np.dot(np.linalg.inv(cov[1]), (mean[1] - mean[0]).T)) - dims + np.log(np.linalg.det(cov[1]) / np.linalg.det(cov[0])))
 
 	model = wiggle(model, state, inverse=True)
 
@@ -530,14 +617,14 @@ def compute_energy(state, model, params, P_KH, N_KH, HS, display=False):
 
 def PSO(state, initial_model, params, P_KH, N_KH, HS):
 
-	M = 100        # number of particles
+	M = 25      # number of particles
 	K = len(state) 	      # num parameters to define functions
 
 	c1, c2, omega       = 1.49618, 1.49618, 0.7298
 	p, v = np.zeros((M, K+1)), np.zeros((M, K))
 	b, g = np.zeros((M, K+1)), np.zeros(K+1)
 
-	MAX_ITER = 20
+	MAX_ITER = 10
 
 	results = []
 
@@ -547,11 +634,13 @@ def PSO(state, initial_model, params, P_KH, N_KH, HS):
 	for i in range(1, M):	
 		
 		p[i,:K] = state + ((np.random.rand(K) * 0.2) - 0.1)
-
 		p[i,0] *= 100.
 		p[i,1] *= 100.
 
 		v[i,:]  = ((np.random.rand(K) * 0.1) - 0.05)
+
+		v[i,0] *= 10.
+		v[i,1] *= 10.
 
 		p[i,K]   = compute_energy(p[i,:K], initial_model, params, P_KH, N_KH, HS)
 		b[i] = np.copy(p[i])
@@ -581,7 +670,8 @@ def PSO(state, initial_model, params, P_KH, N_KH, HS):
 		if idx > -1:
 			g = np.copy(p[idx,:])
 
-		compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS, display=True)
+		# this call is just to draw the current global opt to the screen. The value is computed / copied earlier
+		g[K] = compute_energy(g[:K], initial_model, params, P_KH, N_KH, HS, display=True)
 
 		for i in range(M):
 			r1, r2 = np.random.rand(1)[0], np.random.rand(1)[0]

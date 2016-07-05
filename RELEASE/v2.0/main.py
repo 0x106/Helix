@@ -1,11 +1,5 @@
 
 
-
-
-
-
-
-
 import model as ARModel
 import HSIC
 import util
@@ -14,86 +8,106 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize
 
+print 'here'
+
 descriptors = []
 
-def test():
-	model = ARModel.wiggle(model, ((np.random.rand(dims) * 0.125) - 0.0625))
+def test(model):
+	# model = ARModel.wiggle(model, ((np.random.rand(dims) * 0.125) - 0.0625))
 
 	command = cv2.waitKey(1)
-	num = 400
+	num = 60
 
-	if use_flow:
-		initial_model = ARModel.articulated_model(image.shape)
-		initial_model.copy(model)
-		initial_model_points = initial_model.get_points(all_points=True)
-		init_p = initial_model.get_points()
+	results = [np.zeros(num) for i in range(10)]
 
-		MPH = P_KH + util.descriptors(params, points, initial_model_points, HS_M, _train=True, _motion=True)
-		results = results = [np.zeros(num) for i in range(6)]
+	mean, cov = [np.zeros(dims), np.zeros(dims)],[np.zeros((dims,dims)), np.zeros((dims,dims))]
 
-	else:
-		results = results = [np.zeros(num) for i in range(3)]
+	for frame in range(10):
 
-	model.rz(-1,1,-(num/2)*0.01)
-	# model.tx(-1,1,-(num/2)*10.)
+		P_KH = ARModel.get_KH(model, [0. for i in range(dims)], params, HS)
+		[params.update() for i in range(1)]
 
-	for iteration in range(num):
-		image, hsv, dt, flow = params.get_frames()
-		model.rz(-1,1,0.01)
-		# model.tx(-1,1,10.)
-		points = model.get_points()
-
-		for i in range(len(points)):
-			cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255),-1)
-
-		for i in range(len(points)-1):
-			if i != 3 and i != 7 and i != 11:
-				cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
-				if use_flow:
-					cv2.line(image,(int(init_p[i][0]),int(init_p[i][1])),(int(init_p[i+1][0]),int(init_p[i+1][1])),(0,0,255))
+		model.rz(-1,1,-(num/2)*0.01)
 
 		points = model.get_points(all_points=True)
+		util.descriptors(params, points, points, HS)
+		mean[0], cov[0] = HS.get_mean_cov()
 
-		KH = util.descriptors(params, points, points, HS)
+		for iteration in range(num):
+			image, hsv, dt, flow = params.get_frames()
+			model.rz(-1,1,0.01)
+			# model.tx(-1,1,10.)
+			points = model.get_points()
 
-		results[0][iteration] = HS.HSIC(P_KH, KH)
-		#results[1][iteration] =	HS.HSIC(N_KH, KH)
+			for i in range(len(points)):
+				cv2.circle(image,(int(points[i][0]),int(points[i][1])),2,(0,0,255),-1)
+
+			for i in range(len(points)-1):
+				if i != 3 and i != 7 and i != 11:
+					cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
+					if use_flow:
+						cv2.line(image,(int(init_p[i][0]),int(init_p[i][1])),(int(init_p[i+1][0]),int(init_p[i+1][1])),(0,0,255))
+
+			points = model.get_points(all_points=True)
+
+			for i in range(len(points)):
+				image[int(points[i][1]),int(points[i][0]), 1] = 255
+
+			KH = util.descriptors(params, points, points, HS)
+			mean[1], cov[1] = HS.get_mean_cov()
+
+			# results[frame][iteration] = HS.HSIC(P_KH, KH)
+			a = np.trace(np.linalg.inv(cov[1]) * cov[0])
+			b = np.dot((mean[1] - mean[0]), np.dot(np.linalg.inv(cov[1]), (mean[1] - mean[0]).T))
+			c = np.log(np.linalg.det(cov[1]) / np.linalg.det(cov[0]))
+
+			results[frame][iteration] = 0.5 * (np.dot((mean[1] - mean[0]), np.dot(np.linalg.inv(cov[1]), (mean[1] - mean[0]).T)) + np.dot((mean[1] - mean[0]), np.dot(np.linalg.inv(cov[1]), (mean[1] - mean[0]).T)) - dims + np.log(np.linalg.det(cov[1]) / np.linalg.det(cov[0])))
 
 
-		results[2][iteration] = results[0][iteration]# - results[1][iteration]
+			cv2.imshow("Neptune - Image", image)
+			# cv2.imshow("Neptune - HSV",   hsv)
+			# cv2.imshow("Neptune - DT",    dt)
+			# cv2.imshow("Neptune - Flow",  flow[:,:,0])
+			command = cv2.waitKey(1)
 
-		if use_flow:
-			KH = util.descriptors(params, points, initial_model_points, HS_M, _motion=True)
+		model.rz(-1,1,-(num/2)*0.01)
 
-			results[3][iteration] = HS_M.HSIC(MPH, KH)
-			results[4][iteration] =	HS_M.HSIC(N_KH, KH)
-			results[5][iteration] = results[3][iteration] - results[4][iteration]
-
-		cv2.imshow("Neptune - Image", image)
-		command = cv2.waitKey(1)
-	# ----------- #
+		# params.update()
+		# ----------- #
 
 	for i in range(len(results)):
-		plt.plot(results[i])
+	 	plt.plot(results[i])
 
 	plt.show()
 
 def optimise(model, params, P_KH, N_KH, HS):
 	state = np.random.rand(dims)*0.25 - 0.125
-	optimisation = scipy.optimize.minimize(ARModel.compute_energy, state, 
+	optimisation = scipy.optimize.minimize(ARModel.flow_cost, state, 
 		args=(model, params, P_KH, N_KH, HS, True), method='Nelder-Mead')
 	print optimisation.x
 
 def PSO(model, params, P_KH, N_KH, HS):
+
+	print 'pso'
+
 	state = [0. for i in range(dims)]
 
-	for iteration in range(6):
+	P_KH = ARModel.get_KH(model, state, params, HS)
+	params.update()
+
+	for iteration in range(50):
+
+		print iteration
+
+		image, hsv, dt, flow = params.get_frames()
 
 		state = ARModel.PSO(state, model, params, P_KH, N_KH, HS)
 
-		descriptors.append(ARModel.train(dims, model, state, motion=use_flow, update=True))
+		P_KH = ARModel.get_KH(model, state, params, HS)
 
-		P_KH += descriptors[-1]
+		# descriptors.append(ARModel.train(dims, model, state, motion=use_flow, update=True))
+
+		# P_KH += descriptors[-1]
 		params.update()
 
 params = util.parameters()
@@ -102,7 +116,7 @@ model = ARModel.articulated_model(image.shape)
 
 points = model.get_points(all_points=True)
 
-HS = HSIC.HilbertSchmidt(len(points), 7)
+HS = HSIC.HilbertSchmidt(len(points), 9)
 HS_M = HSIC.HilbertSchmidt(len(points), 9)
 
 dims = 15
@@ -117,14 +131,23 @@ P_KH, N_KH = ARModel.load_model()
 
 descriptors.append(np.copy(P_KH))
 
-# test()
+# import KL
+
+# frames = [params.get_frames(), params.get_frames(10)]
+# state = [[0. for i in range(dims)], np.random.rand(dims) * 10.]
+
+# print '-->', KL.KL(model, frames, state, 9)
+
+# test(model)
 PSO(model, params, P_KH, N_KH, HS)
 # optimise(model, params, P_KH, N_KH, HS)
+import sys
+sys.exit()
 
-[params.update() for i in range(4)]
+[params.update() for i in range(8)]
 
 command = cv2.waitKey(1)
-num = 100
+num = 40
 results = results = [np.zeros(num) for i in range(len(descriptors))]
 
 model.rz(-1,1,-(num/2)*0.01)
@@ -142,8 +165,12 @@ for iteration in range(num):
 	for i in range(len(points)-1):
 		if i != 3 and i != 7 and i != 11:
 			cv2.line(image,(int(points[i][0]),int(points[i][1])),(int(points[i+1][0]),int(points[i+1][1])),(255,0,0))
-		
+	
 	points = model.get_points(all_points=True)
+
+	for i in range(len(points)):
+		image[int(points[i][1]),int(points[i][0]), 1] = 255
+		# cv2.circle(image,(int(points[i][0]),int(points[i][1])),1,(0,0,255),)
 
 	KH = util.descriptors(params, points, points, HS)
 

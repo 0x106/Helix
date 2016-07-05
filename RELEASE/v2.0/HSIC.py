@@ -35,19 +35,22 @@ class HilbertSchmidt(object):
 	def get_cov(self):
 		return self.cov
 
+	def get_mean_cov(self):
+		return self.mean, self.cov
+
 	def set_covariance(self,data, type=0):
-		mean = np.mean(data, 1)
+		self.mean = np.mean(data, 1)
 	
 		for i in range(data.shape[1]):
-			data[:,i] -= mean
+			data[:,i] -= self.mean
 
-		cov = np.dot(data, data.T) / (data.shape[1] - 1)
+		self.cov = np.dot(data, data.T) / (data.shape[1] - 1)
 
-		try:
-			self.cov = np.linalg.inv(cov)
-		except:
-			pass
+		# try:
+		# 	self.cov = np.linalg.inv(cov)
+		# except:
+		# 	pass
 
 		for i in range(data.shape[1]):
-			data[:,i] += mean
+			data[:,i] += self.mean
 
