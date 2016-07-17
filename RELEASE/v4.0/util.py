@@ -35,9 +35,10 @@ class parameters(object):
 
 		self.grey = cv2.cvtColor(np.copy(self.image), cv2.COLOR_BGR2GRAY)
 		self.edges = cv2.Canny(np.copy(self.grey), 50,150)
+		cv2.bitwise_not(self.edges, self.edges)
 		self.dt = cv2.distanceTransform(np.copy(self.edges), cv2.DIST_L2, maskSize=5)
 		
-		cv2.normalize(np.copy(self.dt), self.dt, alpha=0., beta=1.0, norm_type=cv2.NORM_MINMAX) * 10.
+		cv2.normalize(np.copy(self.dt), self.dt, alpha=0., beta=1.0, norm_type=cv2.NORM_MINMAX)
 		
 		self.hsv = cv2.cvtColor(np.copy(self.image), cv2.COLOR_BGR2HSV)
 		

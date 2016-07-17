@@ -4,6 +4,33 @@ import util
 import cv2
 import matplotlib.pyplot as plt
 
+def skeleton(_image):
+
+	img = cv2.cvtColor(np.copy(_image.astype(np.float32)), cv2.COLOR_BGR2GRAY).astype(np.uint8)
+
+	skel = np.zeros(img.shape,np.uint8)
+ 
+	size = np.size(img)
+	ret,img = cv2.threshold(img,127,255,0)
+	element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+	done = False
+
+	while( not done):
+	    eroded = cv2.erode(img,element)
+	    temp = cv2.dilate(eroded,element)
+	    temp = cv2.subtract(img,temp)
+	    skel = cv2.bitwise_or(skel,temp)
+	    img = eroded.copy()
+
+	    cv2.imshow("Erosion", img)
+	    cv2.waitKey(1)
+	 
+	    zeros = size - cv2.countNonZero(img)
+	    if zeros==size:
+	        done = True
+ 
+	cv2.imshow("Skeleton",skel)
+	cv2.waitKey(0)
 
 def notes():
 
@@ -84,6 +111,7 @@ def create_image(points, w,h):
 
 	grey = cv2.cvtColor(np.copy(image.astype(np.float32)), cv2.COLOR_BGR2GRAY).astype(np.uint8)
 	edges = cv2.Canny(np.copy(grey), 50,150)
+	cv2.bitwise_not(edges, edges)
 	dt = cv2.distanceTransform(np.copy(edges), cv2.DIST_L2, maskSize=5)
 		
 	cv2.normalize(np.copy(dt), dt, alpha=0., beta=1.0, norm_type=cv2.NORM_MINMAX)# * 10.
@@ -146,6 +174,8 @@ def HSIC(_ref, _query, grid, H, N, row=-1, col=-1):
 # global params
 params = util.parameters()
 image, hsv, dt, flow = params.get_frames()
+
+skeleton(image)
 
 # model params
 model = ARModel.articulated_model(image.shape)
